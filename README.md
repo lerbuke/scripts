@@ -18,7 +18,9 @@
 
 **gen_lampes.py**  new version of gen_ballast.py
 
+gen_dabf.py generate customized buttons using dabuttonfactory
 
+**default.json** default input file for gen_dabf.py
 
 ## Tests
 
