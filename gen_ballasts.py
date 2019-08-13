@@ -5,7 +5,7 @@ Automaticaly add  ballast symbols in .fxd files, usually edited within the FlexE
 import argparse, os
 
 parser = argparse.ArgumentParser(description='Génération de symboles de ballast.')
-parser.add_argument('-fn', '--file_name', required=True, help='Nom du fichier y compris l''extension .afx')
+parser.add_argument('-fn', '--file_name', required=True, help='Nom du fichier y compris l''extension .fxd')
 parser.add_argument('-sid', '--scheme_id', required=True, help='Identifiant du schéma dans lequel les symboles de ballast seront générés (Page syno)')
 parser.add_argument('-s', '--start_value', required=True, type=int, help='Adresse de départ du premier cadre de symbole de ballast (Adresse syno de Bus X - Ballast 1 allumee)')
 parser.add_argument('-c', '--count_value', required=True, type=int, help='Nombre de symboles de ballast à générer')
