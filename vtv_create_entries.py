@@ -23,7 +23,7 @@ try:
     CAMERA = 'cad'
     AUTOMATE = 'aut'
     cameras = []
-    automates = []   
+    automates = []
     for line in fw:
         value = line.rstrip().split(';')[1:4]
         if CAMERA in line:
@@ -33,26 +33,24 @@ try:
     fw.close()
     #print(automates)
     #print(cameras)
-    
+
     # Open the server0.db database
-    conn = sqlite3.connect(args.db_path + 'server0.db')  
+    conn = sqlite3.connect(args.db_path + 'server0.db')
     cur = conn.cursor()
-    
+
     # Delete all MODBUS (0) and SNMP (3) providers, provider configurations and replies
     for provider in (0,3):
         cur.execute("SELECT providerNbSubId FROM provider WHERE providerType={}".format(provider))
         nb = cur.fetchone()[0]
-
-        range = (0, nb-1)
-        for i in range: 
+        for i in range(0,nb):
             suffix = "_" + str(provider) + "_" + str(i)
             cur.execute('DROP TABLE IF EXISTS provider' + suffix)
             cur.execute('DROP TABLE IF EXISTS provider_config' + suffix)
-            cur.execute('DROP TABLE IF EXISTS provider_reply' + suffix)       
-   
-    # Delete local table
+            cur.execute('DROP TABLE IF EXISTS provider_reply' + suffix)
+
+    # Recreate local table
     cur.execute("DROP TABLE IF EXISTS local")
-    cur.execute("""CREATE TABLE "local" (
+    cur.execute("""CREATE TABLE local (
         "id" INTEGER NOT NULL,
         "tag" TEXT,
         "desc" TEXT,
@@ -69,13 +67,40 @@ try:
         "texpro" integer,
         PRIMARY KEY ("id")
         );""")
-        
+
+    cur.execute("DROP TABLE IF EXISTS provider_4_0")
+    cur.execute("""CREATE TABLE provider_4_0 (
+          "id" INTEGER NOT NULL,
+          "tag" TEXT,
+          "desc" TEXT,
+          "variant" INTEGER,
+          "attribute" INTEGER,
+          "alarm" INTEGER,
+          "prio" INTEGER,
+          "alarm_txt" INTEGER,
+          "invert" INTEGER,
+          "renv0" INTEGER,
+          "renv1" INTEGER,
+          "renv2" INTEGER,
+          "renv3" INTEGER,
+          "renv4" INTEGER,
+          "immediate" INTEGER,
+          "store" INTEGER,
+          "scale" REAL,
+          "factor" REAL,
+          "field0" TEXT,
+          "texpro" integer,
+          PRIMARY KEY ("id")
+        );""")
+
     # Update the number of automates and cameras
     cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 0".format(len(automates)))
     cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 3".format(len(cameras)))
-      
+    cur.execute("UPDATE provider SET providerNbSubId = 1 WHERE providerType = 4")
+    conn.commit()
+
     k = 0
-    sys.stdout.write('Creating {} automate entries...'.format(len(automates)))    
+    sys.stdout.write('Creating {} automate entries...'.format(len(automates)))
     for aut in automates:
         cur.execute("""CREATE TABLE "provider_0_{}" (
             "id" INTEGER NOT NULL,
@@ -101,7 +126,7 @@ try:
             "texpro" integer,
             PRIMARY KEY ("id")
             );""".format(k))
-        
+
         cur.execute("""CREATE TABLE "provider_config_0_{}" (
             "id" INTEGER NOT NULL,
             "name" TEXT,
@@ -113,7 +138,7 @@ try:
             "field5" TEXT,
             PRIMARY KEY ("id")
             );""".format(k))
-        
+
         cur.execute("""CREATE TABLE "provider_reply_0_{}" (
             "id" INTEGER NOT NULL,
             "tag" TEXT,
@@ -131,9 +156,9 @@ try:
             "texpro" integer,
             PRIMARY KEY ("id")
             );""".format(k))
-            
+
         conn.commit()
-        
+
         cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,invert,field0,field1,texpro) VALUES('dis_{}_sti','Défaut disjoncteur',2,1,1,1,1,0,1)".format(k,aut[0]))
         conn.commit()
         cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande dallumage du phare infrarouge',2,0,{},0,0)".format(k,aut[0],aut[1]))
@@ -141,17 +166,17 @@ try:
         cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,0,1)".format(k,aut[0]))
         cur.execute("INSERT INTO provider_config_0_{} (name,field0,field1,field2,field3) VALUES('aut_{}','{}',502,500,1)".format(k,aut[0],aut[2]))
         cur.execute("INSERT INTO provider_reply_0_{} (tag,desc,variant,alarm,renv0,renv1,renv2,texpro) VALUES('aut_{}_dsc','Défaut com. Automate',2,1,1,1,{},1)".format(k,aut[0],k+1))
-        
+
         # Local
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('aut_{}_dac','Défaut communication automate / CT',2,1,3,1,2,{},2)".format(aut[0],k+1))
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('dis_{}_dac','Défaut com. Disjoncteur',2,1,3,1,2,{},2)".format(aut[0],k+1))
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('dis_{}_dsc','Défaut com. Disjoncteur',2,1,3,1,2,{},1)".format(aut[0],k+1))
         cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('pha_{}_ope','Etat opérationnel',1,1,3,{},1)".format(aut[0],k+1))
-    
+
         k+=1
         sys.stdout.write('.')
     print('Done.')
-    
+
     k = 0
     sys.stdout.write('Creating {} camera entries...'.format(len(cameras)))
     for cam in cameras:
@@ -179,8 +204,7 @@ try:
             "field1" TEXT,
             PRIMARY KEY ("id")
             );""".format(k))
-        
-            
+
         cur.execute("""CREATE TABLE "provider_config_3_{}" (
             "id" INTEGER NOT NULL,
             "name" TEXT,
@@ -189,8 +213,8 @@ try:
             "field2" TEXT,
             "field3" TEXT,
             PRIMARY KEY ("id")
-            );""".format(k))       
-            
+            );""".format(k))
+
         cur.execute("""CREATE TABLE "provider_reply_3_{}" (
             "id" INTEGER NOT NULL,
             "tag" TEXT,
@@ -208,26 +232,32 @@ try:
             "texpro" integer,
             PRIMARY KEY ("id")
             );""".format(k))
-            
+
         conn.commit()
-        
+
         cur.execute("INSERT INTO provider_3_{} (tag,variant,attribute,alarm,field0,field1) VALUES('cad_{}_com',2,1,1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, cam[0]))
         cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('cad_{}','{}',5000)".format(k, cam[0],cam[2]))
         cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('cad_{}_dsc','Défaut com. caméra',2,1,1,1,1,{},1)".format(k, cam[0], 101+k))
-        
+
         # Local
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('cad_{}_dac','Défaut com. caméra',2,1,3,1,2,{},2)".format(cam[0],101+k))
-                    
+
+        # Provider_4_0
+        cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_bw','caméra en mode nb',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=BW')".format(cam[0], 4 if 1==int(cam[1]) else 6, cam[2]))
+        cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_co','caméra en mode nb',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color')".format(cam[0], 3 if 1==int(cam[1]) else 5, cam[2]))
         k+=1
         sys.stdout.write('.')
     print('Done.')
-   
+
+
     conn.commit()
     conn.close()
 except IOError as e:
    print("I/O error({0}): {1}".format(e.errno, e.strerror))
    exit()
+except sqlite3.Error as er:
+   print(sqlite3_errmsg(conn))
+   exit()
 except: #handle other exceptions such as attribute errors
    print("Unexpected error:", sys.exc_info()[0])
    exit()
-   
