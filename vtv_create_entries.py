@@ -161,7 +161,7 @@ try:
 
         cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,invert,field0,field1,texpro) VALUES('dis_{}_sti','Défaut disjoncteur',2,1,1,1,1,0,1)".format(k,aut[0]))
         conn.commit()
-        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande dallumage du phare infrarouge',2,0,{},0,0)".format(k,aut[0],aut[1]))
+        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande d''allumage du phare infrarouge',2,0,{},0,0)".format(k,aut[0],aut[1]))
         conn.commit()
         cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,0,1)".format(k,aut[0]))
         cur.execute("INSERT INTO provider_config_0_{} (name,field0,field1,field2,field3) VALUES('aut_{}','{}',502,500,1)".format(k,aut[0],aut[2]))
