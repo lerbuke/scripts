@@ -6,6 +6,8 @@ auto: automate
 cad: camera
 pha: phare
 dis: disjoncteur
+gns: gestionnaire niveau supervision
+sct: scénarios CT
 """
 import argparse, os, sys
 import sqlite3
@@ -22,17 +24,30 @@ try:
     fw = open(args.file_name, "r")
     CAMERA = 'cad'
     AUTOMATE = 'aut'
+    SUPERVISION = 'gns'
+    SCENARIO = 'sct'
+
     cameras = []
     automates = []
+    supervisions = []
+    scenarios = []
+
     for line in fw:
         value = line.rstrip().split(';')[1:4]
         if CAMERA in line:
             cameras.append(value)
         if AUTOMATE in line:
             automates.append(value)
+        if SUPERVISION in line:
+            supervisions.append(value)
+        if SCENARIO in line:
+            scenarios.append(value)
+
     fw.close()
     #print(automates)
     #print(cameras)
+    #print(supervisions)
+    #print(scenarios)
 
     # Open the server0.db database
     conn = sqlite3.connect(args.db_path + 'server0.db')
@@ -99,6 +114,29 @@ try:
     cur.execute("UPDATE provider SET providerNbSubId = 1 WHERE providerType = 4")
     conn.commit()
 
+
+    sys.stdout.write('Creating {} supervision entries...'.format(len(supervisions)))
+    for sup in supervisions:
+        # Local
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,texpro) VALUES('gns_{}_dam','Défaut matériel sur l''automate du CT',2,1,2)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,texpro) VALUES('gns_{}_dsm','Défaut matériel sur l''automate du CT',2,1,1)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,texpro) VALUES('gns_{}_stm','Mode d''exploitation',1,1)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,texpro) VALUES('gns_{}_tad','Mode distant',2,255,1,2)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1,texpro) VALUES('gns_{}_tae','Mode entretien',2,1,255,3,2)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1,texpro) VALUES('gns_{}_tal','Mode local',2,1,255,2,2)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1) VALUES('gns_{}_tex','Communication avec Texpro HS',2,1,255,4)".format(sup[0]))
+        sys.stdout.write('.')
+    print('Done.')
+
+    sys.stdout.write('Creating {} scenarios entries...'.format(len(scenarios)))
+    for sct in scenarios:
+        # Local
+        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2) VALUES('sct_{}_cda','Commande d''activation',1,2,1,{})".format(sct[0],sct[1]))
+        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('sct_{}_ope','Etat opérationnel',1,2,3,{},1)".format(sct[0],sct[1]))
+        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('sct_{}_sta','Etat d''activation',1,2,2,{},1)".format(sct[0],sct[1]))
+        sys.stdout.write('.')
+    print('Done.')
+
     k = 0
     sys.stdout.write('Creating {} automate entries...'.format(len(automates)))
     for aut in automates:
@@ -156,6 +194,7 @@ try:
             "texpro" integer,
             PRIMARY KEY ("id")
             );""".format(k))
+
 
         conn.commit()
 
@@ -244,7 +283,7 @@ try:
 
         # Provider_4_0
         cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_bw','caméra en mode nb',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=BW')".format(cam[0], 4 if 1==int(cam[1]) else 6, cam[2]))
-        cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_co','caméra en mode nb',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color')".format(cam[0], 3 if 1==int(cam[1]) else 5, cam[2]))
+        cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_co','caméra en mode couleur',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color')".format(cam[0], 3 if 1==int(cam[1]) else 5, cam[2]))
         k+=1
         sys.stdout.write('.')
     print('Done.')
