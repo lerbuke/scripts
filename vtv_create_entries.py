@@ -26,11 +26,13 @@ try:
     AUTOMATE = 'aut'
     SUPERVISION = 'gns'
     SCENARIO = 'sct'
+    SWITCH = 'swi'
 
     cameras = []
     automates = []
     supervisions = []
     scenarios = []
+    switchs = []
 
     for line in fw:
         value = line.rstrip().split(';')[1:4]
@@ -42,12 +44,15 @@ try:
             supervisions.append(value)
         if SCENARIO in line:
             scenarios.append(value)
+        if SWITCH in line:
+            switchs.append(value)
 
     fw.close()
     #print(automates)
     #print(cameras)
     #print(supervisions)
     #print(scenarios)
+    #print(switchs)
 
     # Open the server0.db database
     conn = sqlite3.connect(args.db_path + 'server0.db')
@@ -110,7 +115,7 @@ try:
 
     # Update the number of automates and cameras
     cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 0".format(len(automates)))
-    cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 3".format(len(cameras)))
+    cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 3".format(len(cameras)+len(switchs)))
     cur.execute("UPDATE provider SET providerNbSubId = 1 WHERE providerType = 4")
     conn.commit()
 
@@ -284,11 +289,79 @@ try:
         # Provider_4_0
         cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_bw','caméra en mode nb',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=BW')".format(cam[0], 4 if 1==int(cam[1]) else 6, cam[2]))
         cur.execute("INSERT INTO provider_4_0 (tag,desc,variant,attribute,renv4,field0) VALUES('cad_{}_co','caméra en mode couleur',2,2,{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color')".format(cam[0], 3 if 1==int(cam[1]) else 5, cam[2]))
+        
         k+=1
         sys.stdout.write('.')
     print('Done.')
 
+    sys.stdout.write('Creating {} switch entries...'.format(len(switchs)))
+    for swi in switchs:
+        cur.execute("""CREATE TABLE "provider_3_{}" (
+            "id" INTEGER NOT NULL,
+            "tag" TEXT,
+            "desc" TEXT,
+            "variant" INTEGER,
+            "attribute" INTEGER,
+            "alarm" INTEGER,
+            "prio" INTEGER,
+            "alarm_txt" INTEGER,
+            "invert" INTEGER,
+            "renv0" INTEGER,
+            "renv1" INTEGER,
+            "renv2" INTEGER,
+            "renv3" INTEGER,
+            "renv4" INTEGER,
+            "immediate" INTEGER,
+            "store" INTEGER,
+            "scale" REAL,
+            "factor" REAL,
+            "texpro" integer,
+            "field0" TEXT,
+            "field1" TEXT,
+            PRIMARY KEY ("id")
+            );""".format(k))
 
+        cur.execute("""CREATE TABLE "provider_config_3_{}" (
+            "id" INTEGER NOT NULL,
+            "name" TEXT,
+            "field0" TEXT,
+            "field1" TEXT,
+            "field2" TEXT,
+            "field3" TEXT,
+            PRIMARY KEY ("id")
+            );""".format(k))
+
+        cur.execute("""CREATE TABLE "provider_reply_3_{}" (
+            "id" INTEGER NOT NULL,
+            "tag" TEXT,
+            "desc" TEXT,
+            "variant" INTEGER,
+            "alarm" INTEGER,
+            "prio" INTEGER,
+            "alarm_txt" INTEGER,
+            "renv0" INTEGER,
+            "renv1" INTEGER,
+            "renv2" INTEGER,
+            "renv3" INTEGER,
+            "renv4" INTEGER,
+            "store" INTEGER,
+            "texpro" integer,
+            PRIMARY KEY ("id")
+            );""".format(k))
+
+        conn.commit()
+
+        cur.execute("INSERT INTO provider_3_{} (tag,variant,attribute,alarm,field0,field1) VALUES('swi_{}_com',2,1,1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, swi[0]))
+        cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('swi_{}','{}',5000)".format(k, swi[0],swi[2]))
+        cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dsc','Défaut com. switch',2,1,1,1,1,{},1)".format(k, swi[0], 101+k))
+
+        # Local
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dac','Défaut com. switch',2,1,3,1,2,{},2)".format(swi[0],101+k))
+
+        k+=1
+        sys.stdout.write('.')
+    print('Done.')
+    
     conn.commit()
     conn.close()
 except IOError as e:
