@@ -14,7 +14,7 @@ import sqlite3
 
 parser = argparse.ArgumentParser(description='Création des données dans la base server0.db du projet VTV.')
 parser.add_argument('-fn', '--file_name', default='vtv_instances.csv', help='Nom du fichier csv')
-parser.add_argument('-dbp', '--db_path', default='db/', help='Chemin de la base de données server0.db')
+parser.add_argument('-dbp', '--db_path', default='./server_db/', help='Chemin de la base de données server0.db')
 
 args = parser.parse_args()
 print(args)
@@ -293,10 +293,15 @@ try:
     conn.close()
 except IOError as e:
    print("I/O error({0}): {1}".format(e.errno, e.strerror))
+   os.system("pause")
    exit()
 except sqlite3.Error as er:
    print(sqlite3_errmsg(conn))
+   os.system("pause")
    exit()
 except: #handle other exceptions such as attribute errors
    print("Unexpected error:", sys.exc_info()[0])
+   os.system("pause")
    exit()
+
+os.system("pause")
