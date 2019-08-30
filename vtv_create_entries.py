@@ -279,7 +279,7 @@ try:
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_3_{} (tag,variant,attribute,alarm,field0,field1) VALUES('cad_{}_com',2,1,1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, cam[0]))
+        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,field0,field1) VALUES('cad_{}_st1','Défaut port com. 1',2,1,1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, cam[0]))
         cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('cad_{}','{}',5000)".format(k, cam[0],cam[2]))
         cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('cad_{}_dsc','Défaut com. caméra',2,1,1,1,1,{},1)".format(k, cam[0], 101+k))
 
@@ -294,6 +294,7 @@ try:
         sys.stdout.write('.')
     print('Done.')
 
+    swi_num = 0
     sys.stdout.write('Creating {} switch entries...'.format(len(switchs)))
     for swi in switchs:
         cur.execute("""CREATE TABLE "provider_3_{}" (
@@ -351,14 +352,17 @@ try:
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_3_{} (tag,variant,attribute,alarm,field0,field1) VALUES('swi_{}_com',2,1,1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, swi[0]))
+        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1) VALUES('swi_{}_st1','Défaut port com. 1',2,1,1,10,{},1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, swi[0], swi_num+1))
+        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1) VALUES('swi_{}_st2','Défaut port com. 2',2,1,1,10,{},2,'1.3.6.1.2.1.2.2.1.8.2',1)".format(k, swi[0], swi_num+1))
         cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('swi_{}','{}',5000)".format(k, swi[0],swi[2]))
         cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dsc','Défaut com. switch',2,1,1,1,1,{},1)".format(k, swi[0], 101+k))
 
         # Local
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dac','Défaut com. switch',2,1,3,1,2,{},2)".format(swi[0],101+k))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1) VALUES('swi_{}_def','Défaut technique switch',2,1,3,11,{})".format(swi[0],swi_num+1))
 
         k+=1
+        swi_num+=1
         sys.stdout.write('.')
     print('Done.')
     
