@@ -26,7 +26,7 @@ try:
     AUTOMATE = 'aut'
     SUPERVISION = 'gns'
     SCENARIO = 'sct'
-    SWITCH = 'swi'
+    SWITCH = 'olm'
 
     cameras = []
     automates = []
@@ -123,12 +123,8 @@ try:
     sys.stdout.write('Creating {} supervision entries...'.format(len(supervisions)))
     for sup in supervisions:
         # Local
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,texpro) VALUES('gns_{}_dam','Défaut matériel sur l''automate du CT',2,1,2)".format(sup[0]))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,texpro) VALUES('gns_{}_dsm','Défaut matériel sur l''automate du CT',2,1,1)".format(sup[0]))
         cur.execute("INSERT INTO local (tag,desc,variant,texpro) VALUES('gns_{}_stm','Mode d''exploitation',1,1)".format(sup[0]))
-        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,texpro) VALUES('gns_{}_tad','Mode distant',2,255,1,2)".format(sup[0]))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1,texpro) VALUES('gns_{}_tae','Mode entretien',2,1,255,3,2)".format(sup[0]))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1,texpro) VALUES('gns_{}_tal','Mode local',2,1,255,2,2)".format(sup[0]))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1,texpro) VALUES('gns_{}_til','Mode local',2,1,255,2,2)".format(sup[0]))
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,renv0,renv1) VALUES('gns_{}_tex','Communication avec Texpro HS',2,1,255,4)".format(sup[0]))
         sys.stdout.write('.')
     print('Done.')
@@ -203,19 +199,35 @@ try:
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,invert,field0,field1,texpro) VALUES('dis_{}_sti','Défaut disjoncteur',2,1,1,1,1,0,1)".format(k,aut[0]))
+        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,invert,field0,field1,renv0,renv1,texpro) VALUES('tbt_{}_dsj','Défaut disjoncteur',2,1,1,1,1,0,20,{},1)".format(k,aut[0],k+1))
         conn.commit()
-        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande d''allumage du phare infrarouge',2,0,{},0,0)".format(k,aut[0],aut[1]))
         conn.commit()
-        cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,0,1)".format(k,aut[0]))
+        if aut[0] == "29":
+            None
+        elif aut[0] == "13":
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,0,1)".format(k,131))
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande d''allumage du phare infrarouge',2,0,{},0,0)".format(k,131,aut[1]))
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,1,1)".format(k,132))
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande d''allumage du phare infrarouge',2,0,{},0,1)".format(k,132,aut[1]))
+        else:
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,alarm,field0,field1,texpro) VALUES('pha_{}_sti','Etat Phare IR',2,1,1,0,0,1)".format(k,aut[0]))
+            cur.execute("INSERT INTO provider_0_{} (tag,desc,variant,attribute,renv4,field0,field1) VALUES('pha_{}_cdi','Commande d''allumage du phare infrarouge',2,0,{},0,0)".format(k,aut[0],aut[1]))
+			
         cur.execute("INSERT INTO provider_config_0_{} (name,field0,field1,field2,field3) VALUES('aut_{}','{}',502,500,1)".format(k,aut[0],aut[2]))
         cur.execute("INSERT INTO provider_reply_0_{} (tag,desc,variant,alarm,renv0,renv1,renv2,texpro) VALUES('aut_{}_dsc','Défaut com. Automate',2,1,1,1,{},1)".format(k,aut[0],k+1))
 
         # Local
         cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('aut_{}_dac','Défaut communication automate / CT',2,1,3,1,2,{},2)".format(aut[0],k+1))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('dis_{}_dac','Défaut com. Disjoncteur',2,1,3,1,2,{},2)".format(aut[0],k+1))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('dis_{}_dsc','Défaut com. Disjoncteur',2,1,3,1,2,{},1)".format(aut[0],k+1))
-        cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('pha_{}_ope','Etat opérationnel',1,1,3,{},1)".format(aut[0],k+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('tbt_{}_dac','Défaut com. Disjoncteur',2,1,3,1,2,{},2)".format(aut[0],k+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('tbt_{}_dsc','Défaut com. Disjoncteur',2,1,3,1,2,{},1)".format(aut[0],k+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,texpro) VALUES('tbt_{}_daj','Défaut disjoncteur',2,1,3,21,{},2)".format(aut[0],k+1))
+        if aut[0] == "29":
+            None
+        elif aut[0] == "13":
+            cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('pha_{}_ope','Etat opérationnel',1,1,3,{},1)".format(131,k+1))
+            cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('pha_{}_ope','Etat opérationnel',1,1,3,{},1)".format(132,k+1))
+        else:
+            cur.execute("INSERT INTO local (tag,desc,variant,renv0,renv1,renv2,texpro) VALUES('pha_{}_ope','Etat opérationnel',1,1,3,{},1)".format(aut[0],k+1))
 
         k+=1
         sys.stdout.write('.')
@@ -352,14 +364,16 @@ try:
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1) VALUES('swi_{}_st1','Défaut port com. 1',2,1,1,10,{},1,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k, swi[0], swi_num+1))
-        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1) VALUES('swi_{}_st2','Défaut port com. 2',2,1,1,10,{},2,'1.3.6.1.2.1.2.2.1.8.2',1)".format(k, swi[0], swi_num+1))
-        cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('swi_{}','{}',5000)".format(k, swi[0],swi[2]))
-        cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dsc','Défaut com. switch',2,1,1,1,1,{},1)".format(k, swi[0], 101+k))
+        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('olm_{}_ds1','Défaut port com. 1',2,1,1,10,{},1,'1.3.6.1.2.1.2.2.1.8.1',1,1)".format(k, swi[0], swi_num+1))
+        cur.execute("INSERT INTO provider_3_{} (tag,desc,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('olm_{}_ds2','Défaut port com. 2',2,1,1,10,{},2,'1.3.6.1.2.1.2.2.1.8.2',1,1)".format(k, swi[0], swi_num+1))
+        cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('olm_{}','{}',5000)".format(k, swi[0],swi[2]))
+        cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('olm_{}_dsl','Défaut com. switch',2,1,1,1,1,{},1)".format(k, swi[0], 101+k))
 
         # Local
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('swi_{}_dac','Défaut com. switch',2,1,3,1,2,{},2)".format(swi[0],101+k))
-        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1) VALUES('swi_{}_def','Défaut technique switch',2,1,3,11,{})".format(swi[0],swi_num+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('olm_{}_dal','Défaut com. switch',2,1,3,1,2,{},2)".format(swi[0],101+k))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('olm_{}_da1','Défaut port com. 1',2,1,3,12,{},1,2)".format(swi[0],swi_num+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('olm_{}_da2','Défaut port com. 1',2,1,3,12,{},2,2)".format(swi[0],swi_num+1))
+        cur.execute("INSERT INTO local (tag,desc,variant,alarm,prio,renv0,renv1) VALUES('olm_{}_def','Défaut technique switch',2,1,3,11,{})".format(swi[0],swi_num+1))
 
         k+=1
         swi_num+=1
