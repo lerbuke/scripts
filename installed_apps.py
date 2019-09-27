@@ -1,5 +1,5 @@
-# This scripts allows to get a list of all installed products in a windows
-# machine. The code uses ctypes because there were a number of issues when
+# This scripts gets a list of all installed products in a windows machine.
+# The code uses ctypes because there were a number of issues when
 # trying to achieve the same win win32com.client
 from collections import namedtuple
 from ctypes import byref, create_unicode_buffer, windll
@@ -43,7 +43,7 @@ Product = namedtuple('Product', PRODUCT_PROPERTIES)
  
  
 def get_property_for_product(product, property, buf_size=PROPERTY_BUFFER_SIZE):
-    """Retruns the value of a fiven property from a product."""
+    """Returns the value of a given property from a product."""
     property_buffer = create_unicode_buffer(buf_size)
     size = DWORD(buf_size)
     result = windll.msi.MsiGetProductInfoW(product, property, property_buffer, byref(size))
