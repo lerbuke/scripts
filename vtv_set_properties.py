@@ -14,44 +14,58 @@ import argparse, os, sys
 import re
 
 parser = argparse.ArgumentParser(description='Ajout de la propriété URL aux objets camera du fichier SVG Cameras du projet VTV.')
-parser.add_argument('-fn', '--file_name', default='vtv_instances.csv', help='Nom du fichier csv')
+parser.add_argument('-fn', '--file_name', default='vtv_instances.txt', help='Nom du fichier texte')
 parser.add_argument('-svg', '--svg_fn', help='Chemin du fichier svg à modifier')
 
 args = parser.parse_args()
 print(args)
 
 
+def work(o, list, line):
+    if len(o) != 3:
+        raise NameError('Length of \'' + o + '\' must equals 3.')
+
+    sb = re.search(r'n=' + o + '_.[^< ]*', line.rstrip())
+    if sb != None:
+        id = sb.group()[6:]
+        for item in list:
+            if id == item[0]:
+                tooltip = item[3]
+                index = sb.span()[1]
+                output_file.write(line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
+                break
+
 try:
-    # Open the cvs file and extract needed info into lists 
+    # Open the cvs file and extract needed info into lists
     # Each item of the list if composed by a list of
-    #  id, ?, ip address, tooltip, 
+    #  id, ?, ip address, tooltip,
     AUTOMATE = 'aut'
-    CAMERA = 'cad' 
+    CAMERA = 'cad'
     DISJONCTEUR = 'tbt'
-    PHARE = 'pha'    
-    SWITCH = 'olm'        
-    
+    PHARE = 'pha'
+    SWITCH = 'olm'
+
     automates = []
     cameras = []
     disjoncteurs = []
-    phares = []    
-    switches = []   
+    phares = []
+    switches = []
     keys = ['URL=', 'TOOLTIP=', 'n=pha_', 'n=olm_']
-    
-    with open (args.file_name,"r") as cam_file:  
+
+    with open (args.file_name,"r") as cam_file:
         for line in cam_file:
-            value = line.rstrip().split(';')[1:6]
+            value = line.rstrip().split('\t')[1:6]
             if AUTOMATE in line:
                 automates.append(value)
-            if CAMERA in line:                
+            if CAMERA in line:
                 cameras.append(value)
             if DISJONCTEUR in line:
                 disjoncteurs.append(value)
             if PHARE in line:
-                phares.append(value)            
+                phares.append(value)
             if SWITCH in line:
                 switches.append(value)
-    
+
     with open (args.svg_fn, "r") as input_file:
         with open ("_"+args.svg_fn, "w", newline='\n') as output_file:
             for line in input_file:
@@ -62,20 +76,12 @@ try:
                     if 'URL=' in line:
                         output_file.write(re.sub(r'URL=.[^<]*', '', line))
                     elif 'TOOLTIP=' in line:
-                        output_file.write(re.sub(r'TOOLTIP=.[^<]*', '', line))                                       
-                                                
-                # Automate                   
-                sb = re.search(r'n=aut_.[^< ]*', line)
-                if sb != None:
-                    id = sb.group()[6:]
-                    for aut in automates:
-                        if id in aut[0]:
-                            tooltip = aut[3]
-                            index = sb.span()[1]
-                            output_file.write(line[:index:] + '\nTOOLTIP=' + tooltip.replace('"','') + line[index:] +'\n')              
-                            break                 
-                            
-                # Camera                    
+                        output_file.write(re.sub(r'TOOLTIP=.[^<]*', '', line))
+
+                # Automate
+                work('aut', automates, line)
+
+                # Camera
                 sb = re.search(r'MSVGTAG=cad_\d+_dsc', line)
                 if sb != None:
                     id = re.search(r'\d+', sb.group()).group()
@@ -84,44 +90,21 @@ try:
                             ip_addr = cam[2]
                             output_file.write('URL=http://'+ip_addr+'/stw-cgi/video.cgi?msubmenu=stream&amp;action=view&amp;Profile=1&amp;CodecType=MJPEG&amp;Resolution=800x600&amp;FrameRate=10&amp;CompressionLevel=10\n')
                             tooltip = cam[3]
-                            output_file.write('\nTOOLTIP=' + tooltip + '\n')
-                            break                                           
-                    
-                # Disjoncteur                   
-                sb = re.search(r'n=tbt_.[^< ]*', line)
-                if sb != None:
-                    id = sb.group()[6:]
-                    for dis in disjoncteurs:
-                        if id in dis[0]:
-                            tooltip = dis[3]
-                            index = sb.span()[1]
-                            output_file.write(line[:index:] + '\nTOOLTIP=' + tooltip.replace('"','') + line[index:] +'\n')              
-                            break          
-                            
-                # Phare                  
-                sb = re.search(r'n=pha_.[^< ]*', line)
-                if sb != None:
-                    id = sb.group()[6:]
-                    for pha in phares:
-                        if id in pha[0]:
-                            tooltip = pha[3]
-                            index = sb.span()[1]
-                            output_file.write(line[:index:] + '\nTOOLTIP=' + tooltip.replace('"','') + line[index:] +'\n')              
-                            break 
-                
-                # Switch                   
-                sb = re.search(r'n=olm_.[^< ]*', line)
-                if sb != None:
-                    id = sb.group()[6:]
-                    for swi in switches:
-                        if id in swi[0]:
-                            tooltip = swi[3]
-                            index = sb.span()[1]
-                            output_file.write(line[:index:] + '\nTOOLTIP=' + tooltip.replace('"','') + line[index:] +'\n')              
-                            break                 
+                            output_file.write('TOOLTIP=' + tooltip + '\n')
+                            break
+
+                # Disjoncteur
+                work('tbt', disjoncteurs, line)
+
+                # Phare
+                work('pha', phares, line)
+
+                # Switch
+                work('olm', switches, line)
+
     os.remove(args.svg_fn)
     os.rename("_"+args.svg_fn, args.svg_fn)
-    
+
 except IOError as e:
    print("I/O error({0}) exception: {1}".format(e.errno, e.strerror))
    print(traceback.format_exc())
@@ -138,4 +121,4 @@ except: #handle other exceptions such as attribute errors
    os.system("pause")
    exit()
 
-os.system("pause")    
+os.system("pause")
