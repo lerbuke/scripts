@@ -2,7 +2,7 @@
 """
 vtv_set_properties.py
 Remove all existing URL and TOOLTIP properties in the svg file.
-Add URL and TOOLTIP read from the cvs file.
+Add URL and TOOLTIP read from the txt file.
 aut: automate
 cad: camera
 pha: phare
@@ -13,7 +13,7 @@ sct: scénarios CT
 import argparse, os, sys
 import re
 
-parser = argparse.ArgumentParser(description='Ajout de la propriété URL aux objets camera du fichier SVG Cameras du projet VTV.')
+parser = argparse.ArgumentParser(description='Ajout des propriétés URL et TOOLTIP dans un fichier SVG du projet VTV.')
 parser.add_argument('-fn', '--file_name', default='vtv_instances.txt', help='Nom du fichier texte')
 parser.add_argument('-svg', '--svg_fn', help='Chemin du fichier svg à modifier')
 
@@ -36,7 +36,7 @@ def work(o, list, line):
                 break
 
 try:
-    # Open the cvs file and extract needed info into lists
+    # Open the txt file and extract needed info into lists
     # Each item of the list if composed by a list of
     #  id, ?, ip address, tooltip,
     AUTOMATE = 'aut'
