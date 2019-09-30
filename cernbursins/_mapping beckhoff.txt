@@ -1,0 +1,397 @@
+(*	Commandes générales pour les automates déportés BC9x00	*)
+
+DateEtHeure	AT %MD0	: DT;
+
+TelerelaisEclairagePubliqueModeNuit	AT %MX4.0	: BOOL;
+BpTestEclairageSecours	AT %MX4.1	: BOOL;
+BpTestEclairagePublic	AT %MX4.2	: BOOL;
+
+LiberationPortesProgramme1	AT %MX4.4	: BOOL;
+LiberationPortesProgramme2	AT %MX4.5	: BOOL;
+LiberationPortesProgramme3	AT %MX4.6	: BOOL;
+LiberationPortesProgramme4	AT %MX4.7	: BOOL;
+LiberationPortesProgramme5	AT %MX5.0	: BOOL;
+LiberationPortesProgramme6	AT %MX5.1	: BOOL;
+
+TS00_AllumageGeneral	AT %MX10.0	: BOOL;
+TS00_ExtinctionGenerale	AT %MX10.1	: BOOL;
+
+TS02_AllumageGeneral	AT %MX12.0	: BOOL;
+TS02_ExtinctionGenerale	AT %MX12.1	: BOOL;
+
+TS03_AllumageGeneral	AT %MX14.0	: BOOL;
+TS03_ExtinctionGenerale	AT %MX14.1	: BOOL;
+
+TS04_AllumageGeneral	AT %MX16.0	: BOOL;
+TS04_ExtinctionGenerale	AT %MX16.1	: BOOL;
+
+TS05_AllumageGeneral	AT %MX18.0	: BOOL;
+TS05_ExtinctionGenerale	AT %MX18.1	: BOOL;
+
+TS06_AllumageGeneral	AT %MX19.0	: BOOL;
+TS06_ExtinctionGenerale	AT %MX19.1	: BOOL;
+
+DureeTestEclairageSecours	AT %MW20	: INT;
+HeureDebutDelestageEclairagePublique	AT %MW22	: HeureMinute;
+HeureFinDelestageEclairagePublique	AT %MW24	: HeureMinute;
+DureeTestEclairagePublic	AT %MW26	: INT;
+
+
+
+(*	Statuts provenant du CX9000 du TGBT/TS00	*)
+
+TS00_Statuts	AT %MB100	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TGBT_AlarmeManqueDeTension	AT %MX100.0	: BOOL;
+TGBT_AlarmeCommutationSurSecouru	AT %MX100.1	: BOOL;
+TGBT_AlarmeDisjoncteurReseauOuvert	AT %MX100.2	: BOOL;
+TGBT_AlarmeDisjoncteurSecoursOuvert	AT %MX100.3	: BOOL;
+TGBT_AlarmeDisjoncteurEnDefaut	AT %MX100.4	: BOOL;
+
+TS00_AlarmeDisjoncteurAsiOuvert	AT %MX102.0	: BOOL;
+TS00_AlarmeGrpSecoursEnPanne	AT %MX102.1	: BOOL;
+TS00_AlarmeGrpSecoursCiterneNiveauBas	AT %MX102.2	: BOOL;
+TS00_AlarmeGrpSecoursEnMarche	AT %MX102.3	: BOOL;
+TS00_AlarmeGrpSecoursModeManuel	AT %MX102.4	: BOOL;
+TS00_AlarmeChauffageBois1EnPanne	AT %MX102.5	: BOOL;
+TS00_AlarmeChauffageBois2EnPanne	AT %MX102.6	: BOOL;
+TS00_AlarmeSolaireS2EnPanne	AT %MX102.7	: BOOL;
+
+TS00_AlarmeCommunicationTS02	AT %MX103.0	: BOOL;
+TS00_AlarmeCommunicationTS03	AT %MX103.1	: BOOL;
+TS00_AlarmeCommunicationTS04	AT %MX103.2	: BOOL;
+TS00_AlarmeCommunicationTS05	AT %MX103.3	: BOOL;
+TS00_AlarmeCommunicationTS06	AT %MX103.4	: BOOL;
+TS00_AlarmeCommunicationRS232	AT %MX103.5	: BOOL;
+TS00_AlarmeCommunicationRS485	AT %MX103.6	: BOOL;
+
+TS01_AlarmeDisjoncteurAsiOuvert	AT %MX104.0	: BOOL;
+
+TS00_Compteur1	AT %MB110	: DINT;
+TS00_Compteur2	AT %MB114	: DINT;
+TS00_Compteur3	AT %MB118	: DINT;
+TS00_Compteur4	AT %MB122	: DINT;
+
+
+
+(*	Statuts  TGBT via Modbus 232	*)
+
+TGBT_Disjoncteur1Ferme	AT %MX106.0	: BOOL;
+TGBT_Disjoncteur2Ferme	AT %MX106.1	: BOOL;
+TGBT_Disjoncteur3Ferme	AT %MX106.2	: BOOL;
+TGBT_Disjoncteur4Ferme	AT %MX106.3	: BOOL;
+TGBT_Disjoncteur5Ferme	AT %MX106.4	: BOOL;
+TGBT_Disjoncteur6Ferme	AT %MX106.5	: BOOL;
+TGBT_Disjoncteur7Ferme	AT %MX106.6	: BOOL;
+TGBT_Disjoncteur8Ferme	AT %MX106.7	: BOOL;
+TGBT_Disjoncteur9Ferme	AT %MX107.0	: BOOL;
+TGBT_Disjoncteur10Ferme	AT %MX107.1	: BOOL;
+TGBT_Disjoncteur11Ferme	AT %MX107.2	: BOOL;
+TGBT_Disjoncteur12Ferme	AT %MX107.3	: BOOL;
+TGBT_Disjoncteur13Ferme	AT %MX107.4	: BOOL;
+TGBT_Disjoncteur14Ferme	AT %MX107.5	: BOOL;
+TGBT_Disjoncteur15Ferme	AT %MX107.6	: BOOL;
+TGBT_Disjoncteur16Ferme	AT %MX107.7	: BOOL;
+TGBT_Disjoncteur17Ferme	AT %MX108.0	: BOOL;
+TGBT_Disjoncteur18Ferme	AT %MX108.1	: BOOL;
+TGBT_Disjoncteur19Ferme	AT %MX108.2	: BOOL;
+TGBT_Disjoncteur20Ferme	AT %MX108.3	: BOOL;
+TGBT_Disjoncteur1TensionBasse	AT %MX108.4	: BOOL;
+
+
+
+(*	Statuts provenant du BC9100 du TS02	*)
+
+TS02_Statuts	AT %MB200	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TS02_AlarmeDisjoncteurAsiOuvert	AT %MX200.0	: BOOL;
+TS02_AlarmeVentilationSanitaireEnPanne	AT %MX200.1	: BOOL;
+TS02_AlarmeExutoiresFumeeEnPanne	AT %MX200.2	: BOOL;
+TS02_AlarmeCentraleCoNoEnPanne	AT %MX200.3	: BOOL;
+TS02_AlarmeCentraleCoNoActive	AT %MX200.4	: BOOL;
+TS02_AlarmePorte1Ouverte	AT %MX201.0	: BOOL;
+TS02_AlarmePorte2Ouverte	AT %MX201.1	: BOOL;
+TS02_AlarmePorte3Ouverte	AT %MX201.2	: BOOL;
+TS02_AlarmePorte4Ouverte	AT %MX201.3	: BOOL;
+TS02_AlarmePorte5Ouverte	AT %MX201.4	: BOOL;
+
+TS02_AlarmeSurtension	AT %MX202.0	: BOOL;
+TS02_AlarmeInterrupteurDelestage	AT %MX202.1	: BOOL;
+TS02_AlarmeDelestage	AT %MX202.2	: BOOL;
+TS02_AlarmeSolaireAL1EnPanne	AT %MX202.3	: BOOL;
+TS02_AlarmeSolaireAL2EnPanne	AT %MX202.4	: BOOL;
+TS02_AlarmeSolaireS1EnPanne	AT %MX202.5	: BOOL;
+
+TS02_Compteur1	AT %MB210	: DINT;
+TS02_Compteur2	AT %MB214	: DINT;
+TS02_Compteur3	AT %MB218	: DINT;
+TS02_Compteur4	AT %MB222	: DINT;
+
+
+
+(*	Statuts provenant du BC9100 du TS03	*)
+
+TS03_Statuts	AT %MB300	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TS03_AlarmeDisjoncteurAsiOuvert	AT %MX300.0	: BOOL;
+TS03_AlarmeVentilationSanitaireEnPanne	AT %MX300.1	: BOOL;
+TS03_AlarmeExutoiresFumeeEnPanne	AT %MX300.2	: BOOL;
+TS03_AlarmeCentraleCoNoEnPanne	AT %MX300.3	: BOOL;
+TS03_AlarmeCentraleCoNoActive	AT %MX300.4	: BOOL;
+
+TS03_AlarmePorte1Ouverte	AT %MX301.0	: BOOL;
+TS03_AlarmePorte2Ouverte	AT %MX301.1	: BOOL;
+TS03_AlarmePorte3Ouverte	AT %MX301.2	: BOOL;
+
+TS03_AlarmeSurtension	AT %MX302.0	: BOOL;
+TS03_AlarmeInterrupteurDelestage	AT %MX302.1	: BOOL;
+TS03_AlarmeDelestage	AT %MX302.2	: BOOL;
+TS03_AlarmeSolaireS3EnPanne	AT %MX302.3	: BOOL;
+
+TS03_Compteur1	AT %MB310	: DINT;
+TS03_Compteur2	AT %MB314	: DINT;
+TS03_Compteur3	AT %MB318	: DINT;
+TS03_Compteur4	AT %MB322	: DINT;
+
+
+
+(*	Statuts provenant du BC9100 du TS04	*)
+
+TS04_Statuts	AT %MB400	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TS04_AlarmeDisjoncteurAsiOuvert	AT %MX400.0	: BOOL;
+TS04_AlarmeVentilationSanitaireEnPanne	AT %MX400.1	: BOOL;
+TS04_AlarmeExutoiresFumeeEnPanne	AT %MX400.2	: BOOL;
+TS04_AlarmeCentraleCoNoEnPanne	AT %MX400.3	: BOOL;
+TS04_AlarmeCentraleCoNoActive	AT %MX400.4	: BOOL;
+
+TS04_AlarmePorte1Ouverte	AT %MX401.0	: BOOL;
+TS04_AlarmePorte2Ouverte	AT %MX401.1	: BOOL;
+TS04_AlarmePorte3Ouverte	AT %MX401.2	: BOOL;
+
+TS04_AlarmeSurtension	AT %MX402.0	: BOOL;
+TS04_AlarmeInterrupteurDelestage	AT %MX402.1	: BOOL;
+TS04_AlarmeDelestage	AT %MX402.2	: BOOL;
+TS04_AlarmeOnduleurFonctionnementBatterie	AT %MX402.3	: BOOL;
+TS04_AlarmeOnduleurFonctionnementAsi	AT %MX402.4	: BOOL;
+TS04_AlarmeDisjoncteursAsiOuvertsFermes	AT %MX402.5	: BOOL;
+TS04_AlarmeDisjoncteursAsiDeclenches	AT %MX402.6	: BOOL;
+TS04_AlarmeSolaireS4EnPanne	AT %MX402.7	: BOOL;
+
+TS04_Compteur1	AT %MB410	: DINT;
+TS04_Compteur2	AT %MB414	: DINT;
+TS04_Compteur3	AT %MB418	: DINT;
+TS04_Compteur4	AT %MB422	: DINT;
+
+
+
+(*	Statuts provenant du BC9100 du TS05	*)
+
+TS05_Statuts	AT %MB500	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TS05_AlarmeDisjoncteurAsiOuvert	AT %MX500.0	: BOOL;
+TS05_AlarmeVentilationSanitaireEnPanne	AT %MX500.1	: BOOL;
+TS05_AlarmeExutoiresFumeeEnPanne	AT %MX500.2	: BOOL;
+
+TS05_AlarmePorte1Ouverte	AT %MX501.0	: BOOL;
+TS05_AlarmePorte2Ouverte	AT %MX501.1	: BOOL;
+TS05_AlarmePorte3Ouverte	AT %MX501.2	: BOOL;
+
+TS05_AlarmeSurtension	AT %MX502.0	: BOOL;
+TS05_AlarmeInterrupteurDelestage	AT %MX502.1	: BOOL;
+TS05_AlarmeDelestage	AT %MX502.2	: BOOL;
+TS05_AlarmeChargeurBatteriesEnPanne	AT %MX502.3	: BOOL;
+TS05_AlarmeSolaireS5EnPanne	AT %MX502.4	: BOOL;
+
+TS05_AlarmeTraitementEauEnPanne	AT %MX503.0	: BOOL;
+TS05_AlarmeStationEssenceEnPanne	AT %MX503.1	: BOOL;
+
+TS05_Compteur1	AT %MB510	: DINT;
+TS05_Compteur2	AT %MB514	: DINT;
+TS05_Compteur3	AT %MB518	: DINT;
+TS05_Compteur4	AT %MB522	: DINT;
+
+
+
+(*	Statuts provenant du BC9000 du TS06	*)
+
+TS06_Statuts	AT %MB600	: BYTE;	(* Pointeur pour la comm ADS *)
+
+TS06_AlarmeDisjoncteurAsiOuvert	AT %MX600.0	: BOOL;
+TS06_AlarmeVentilationSanitaireEnPanne	AT %MX600.1	: BOOL;
+TS06_AlarmeExutoiresFumeeEnPanne	AT %MX600.2	: BOOL;
+TS06_AlarmeCentraleCoNoEnPanne	AT %MX600.3	: BOOL;
+TS06_AlarmeCentraleCoNoActive	AT %MX600.4	: BOOL;
+
+TS06_AlarmeVentilationRezEnPanne	AT %MX601.0	: BOOL;
+TS06_AlarmeVentilationVestiaireEnPanne	AT %MX601.1	: BOOL;
+TS06_AlarmeVentilationCellulesEnPanne	AT %MX601.2	: BOOL;
+TS06_AlarmeInstallationSolaireEnPanne	AT %MX601.3	: BOOL;
+
+TS06_AlarmeSurtension	AT %MX602.0	: BOOL;
+TS06_AlarmeInterrupteurDelestage	AT %MX602.1	: BOOL;
+TS06_AlarmeDelestage	AT %MX602.2	: BOOL;
+TS06_AlarmeSolaireS6EnPanne	AT %MX602.3	: BOOL;
+
+TS06_Compteur1	AT %MB610	: DINT;
+TS06_Compteur2	AT %MB614	: DINT;
+TS06_Compteur3	AT %MB618	: DINT;
+TS06_Compteur4	AT %MB622	: DINT;
+
+
+
+(*	Statuts des PM800 via Modbus 485	*)
+
+MB_Compteur1	AT %MD700	: DINT;
+MB_Compteur2	AT %MD704	: DINT;
+MB_Compteur3	AT %MD708	: DINT;
+MB_Compteur4	AT %MD712	: DINT;
+MB_Compteur5	AT %MD716	: DINT;
+MB_Compteur6	AT %MD720	: DINT;
+MB_Compteur7	AT %MD724	: DINT;
+MB_Compteur8	AT %MD728	: DINT;
+MB_Compteur9	AT %MD732	: DINT;
+MB_Compteur10	AT %MD736	: DINT;
+MB_Compteur11	AT %MD740	: DINT;
+MB_Compteur12	AT %MD744	: DINT;
+MB_Compteur13	AT %MD748	: DINT;
+MB_Compteur14	AT %MD752	: DINT;
+MB_Compteur15	AT %MD756	: DINT;
+MB_Compteur16	AT %MD760	: DINT;
+MB_Compteur17	AT %MD764	: DINT;
+MB_Compteur18	AT %MD768	: DINT;
+MB_Compteur19	AT %MD772	: DINT;
+MB_Compteur20	AT %MD776	: DINT;
+MB_Compteur21	AT %MD780	: DINT;
+MB_Compteur22	AT %MD784	: DINT;
+MB_Compteur23	AT %MD788	: DINT;
+MB_Compteur24	AT %MD792	: DINT;
+MB_Compteur25	AT %MD796	: DINT;
+MB_Compteur26	AT %MD850	: DINT;
+
+
+
+(*	Commandes des minuteries de porte	*)
+
+Ferie01	AT %MW800	: JourMois;	(* Liste de jours fériés *)
+Ferie02	AT %MW802	: JourMois;
+Ferie03	AT %MW804	: JourMois;
+Ferie04	AT %MW806	: JourMois;
+Ferie05	AT %MW808	: JourMois;
+Ferie06	AT %MW810	: JourMois;
+Ferie07	AT %MW812	: JourMois;
+Ferie08	AT %MW814	: JourMois;
+Ferie09	AT %MW816	: JourMois;
+Ferie10	AT %MW818	: JourMois;
+Ferie11	AT %MW820	: JourMois;
+Ferie12	AT %MW822	: JourMois;
+Ferie13	AT %MW824	: JourMois;
+Ferie14	AT %MW826	: JourMois;
+Ferie15	AT %MW828	: JourMois;
+
+HeurePortesProg1EteOff1	AT %MW1500	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg1EteOff2	AT %MW1502	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg1EteOff3	AT %MW1504	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg1EteOff4	AT %MW1506	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg1EteOn1	AT %MW1508	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg1EteOn2	AT %MW1510	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg1EteOn3	AT %MW1512	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg1EteOn4	AT %MW1514	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg1HiverOff1	AT %MW1516	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg1HiverOff2	AT %MW1518	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg1HiverOff3	AT %MW1520	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg1HiverOff4	AT %MW1522	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg1HiverOn1	AT %MW1524	: HeureMinute;	(* Programme du mation du lundi au jeudi *)	
+HeurePortesProg1HiverOn2	AT %MW1526	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)	
+HeurePortesProg1HiverOn3	AT %MW1528	: HeureMinute;	(* Programme du mation du vendredi *)	
+HeurePortesProg1HiverOn4	AT %MW1530	: HeureMinute;	(* Programme de l'après midi du vendredi *)	
+HeurePortesProg2EteOff1	AT %MW1532	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg2EteOff2	AT %MW1534	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg2EteOff3	AT %MW1536	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg2EteOff4	AT %MW1538	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg2EteOn1	AT %MW1540	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg2EteOn2	AT %MW1542	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg2EteOn3	AT %MW1544	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg2EteOn4	AT %MW1546	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg2HiverOff1	AT %MW1548	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg2HiverOff2	AT %MW1550	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg2HiverOff3	AT %MW1552	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg2HiverOff4	AT %MW1554	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg2HiverOn1	AT %MW1556	: HeureMinute;	(* Programme du mation du lundi au jeudi *)	
+HeurePortesProg2HiverOn2	AT %MW1558	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)	
+HeurePortesProg2HiverOn3	AT %MW1560	: HeureMinute;	(* Programme du mation du vendredi *)	
+HeurePortesProg2HiverOn4	AT %MW1562	: HeureMinute;	(* Programme de l'après midi du vendredi *)	
+HeurePortesProg3EteOff1	AT %MW1564	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg3EteOff2	AT %MW1566	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg3EteOff3	AT %MW1568	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg3EteOff4	AT %MW1570	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg3EteOn1	AT %MW1572	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg3EteOn2	AT %MW1574	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg3EteOn3	AT %MW1576	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg3EteOn4	AT %MW1578	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg3HiverOff1	AT %MW1580	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg3HiverOff2	AT %MW1582	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg3HiverOff3	AT %MW1584	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg3HiverOff4	AT %MW1586	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg3HiverOn1	AT %MW1588	: HeureMinute;	(* Programme du mation du lundi au jeudi *)	
+HeurePortesProg3HiverOn2	AT %MW1590	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)	
+HeurePortesProg3HiverOn3	AT %MW1592	: HeureMinute;	(* Programme du mation du vendredi *)	
+HeurePortesProg3HiverOn4	AT %MW1594	: HeureMinute;	(* Programme de l'après midi du vendredi *)	
+HeurePortesProg4EteOff1	AT %MW1596	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg4EteOff2	AT %MW1598	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg4EteOff3	AT %MW1600	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg4EteOff4	AT %MW1602	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg4EteOn1	AT %MW1604	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg4EteOn2	AT %MW1606	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg4EteOn3	AT %MW1608	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg4EteOn4	AT %MW1610	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg4HiverOff1	AT %MW1612	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg4HiverOff2	AT %MW1614	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg4HiverOff3	AT %MW1616	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg4HiverOff4	AT %MW1618	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg4HiverOn1	AT %MW1620	: HeureMinute;	(* Programme du mation du lundi au jeudi *)	
+HeurePortesProg4HiverOn2	AT %MW1622	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)	
+HeurePortesProg4HiverOn3	AT %MW1624	: HeureMinute;	(* Programme du mation du vendredi *)	
+HeurePortesProg4HiverOn4	AT %MW1626	: HeureMinute;	(* Programme de l'après midi du vendredi *)	
+HeurePortesProg5EteOff1	AT %MW1628	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg5EteOff2	AT %MW1630	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg5EteOff3	AT %MW1632	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg5EteOff4	AT %MW1634	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg5EteOn1	AT %MW1636	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg5EteOn2	AT %MW1638	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg5EteOn3	AT %MW1640	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg5EteOn4	AT %MW1642	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg5HiverOff1	AT %MW1644	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg5HiverOff2	AT %MW1646	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg5HiverOff3	AT %MW1648	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg5HiverOff4	AT %MW1650	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg5HiverOn1	AT %MW1652	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg5HiverOn2	AT %MW1654	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg5HiverOn3	AT %MW1656	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg5HiverOn4	AT %MW1658	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg6EteOff1	AT %MW1660	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg6EteOff2	AT %MW1662	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg6EteOff3	AT %MW1664	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg6EteOff4	AT %MW1666	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg6EteOn1	AT %MW1668	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg6EteOn2	AT %MW1670	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg6EteOn3	AT %MW1672	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg6EteOn4	AT %MW1674	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg6HiverOff1	AT %MW1676	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg6HiverOff2	AT %MW1678	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg6HiverOff3	AT %MW1680	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg6HiverOff4	AT %MW1682	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+HeurePortesProg6HiverOn1	AT %MW1684	: HeureMinute;	(* Programme du mation du lundi au jeudi *)
+HeurePortesProg6HiverOn2	AT %MW1686	: HeureMinute;	(* Programme de l'après midi du lundi au jeudi *)
+HeurePortesProg6HiverOn3	AT %MW1688	: HeureMinute;	(* Programme du mation du vendredi *)
+HeurePortesProg6HiverOn4	AT %MW1690	: HeureMinute;	(* Programme de l'après midi du vendredi *)
+
+
+
+(*	Télétransmissin compteurs TENER	*)
+
+PulseComptageTener	AT%MB1000	: WORD;
+Tener	AT%MB1002	: ARRAY[1..60] OF WORD;
+
+
+END_VAR
