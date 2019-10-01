@@ -2,7 +2,7 @@
 """
 vtv_set_properties.py
 Remove all existing URL and TOOLTIP properties in the svg file.
-Add URL and TOOLTIP read from the txt file.
+Add URL and TOOLTIP read from the cvs file.
 aut: automate
 cad: camera
 pha: phare
@@ -13,7 +13,7 @@ sct: scénarios CT
 import argparse, os, sys
 import re
 
-parser = argparse.ArgumentParser(description='Ajout des propriétés URL et TOOLTIP dans un fichier SVG du projet VTV.')
+parser = argparse.ArgumentParser(description='Ajout de la propriété URL aux objets camera du fichier SVG Cameras du projet VTV.')
 parser.add_argument('-fn', '--file_name', default='vtv_instances.txt', help='Nom du fichier texte')
 parser.add_argument('-svg', '--svg_fn', help='Chemin du fichier svg à modifier')
 
@@ -25,18 +25,19 @@ def work(o, list, line):
     if len(o) != 3:
         raise NameError('Length of \'' + o + '\' must equals 3.')
 
-    sb = re.search(r'n=' + o + '_.[^< ]*', line.rstrip())
+    sb = re.search(r'n=ble' + o + '_.[^< ]*', line.rstrip()) # i.e. 'n=blepha_65' or 
     if sb != None:
-        id = sb.group()[6:]
+        id = sb.group()[9:]
         for item in list:
             if id == item[0]:
                 tooltip = item[3]
-                index = sb.span()[1]
+                index = sb.span()[1]      
+                print (sb, id, line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 output_file.write(line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 break
-
+     
 try:
-    # Open the txt file and extract needed info into lists
+    # Open the cvs file and extract needed info into lists
     # Each item of the list if composed by a list of
     #  id, ?, ip address, tooltip,
     AUTOMATE = 'aut'
@@ -50,7 +51,6 @@ try:
     disjoncteurs = []
     phares = []
     switches = []
-    keys = ['URL=', 'TOOLTIP=', 'n=pha_', 'n=olm_']
 
     with open (args.file_name,"r") as cam_file:
         for line in cam_file:
@@ -65,12 +65,14 @@ try:
                 phares.append(value)
             if SWITCH in line:
                 switches.append(value)
+                
+    print(phares)                    
 
     with open (args.svg_fn, "r") as input_file:
         with open ("_"+args.svg_fn, "w", newline='\n') as output_file:
             for line in input_file:
                 # Skip writing URL= or TOOLTIP= tags with their value
-                if ('URL=' not in line) and ('TOOLTIP=' not in line) and ('n=pha_' not in line) and ('n=olm_' not in line) and ('n=aut_' not in line) and ('n=tbt_' not in line):
+                if ('URL=' not in line) and ('TOOLTIP=' not in line) and ('n=ble'+PHARE+'_' not in line) and ('n=ble'+SWITCH+'_' not in line) and ('n=ble'+AUTOMATE+'_' not in line) and ('n=ble'+DISJONCTEUR+'_' not in line):
                     output_file.write(line)
                 else:
                     if 'URL=' in line:
@@ -79,10 +81,10 @@ try:
                         output_file.write(re.sub(r'TOOLTIP=.[^<]*', '', line))
 
                 # Automate
-                work('aut', automates, line)
+                work(AUTOMATE, automates, line)
 
                 # Camera
-                sb = re.search(r'MSVGTAG=cad_\d+_dsc', line)
+                sb = re.search(r'MSVGTAG=ble'+AUTOMATE+'_\d+_dsc', line)
                 if sb != None:
                     id = re.search(r'\d+', sb.group()).group()
                     for cam in cameras:
@@ -94,14 +96,14 @@ try:
                             break
 
                 # Disjoncteur
-                work('tbt', disjoncteurs, line)
+                work(DISJONCTEUR, disjoncteurs, line)
 
                 # Phare
-                work('pha', phares, line)
-
+                work(PHARE, phares, line)
+               
                 # Switch
-                work('olm', switches, line)
-
+                work(SWITCH, switches, line)
+                
     os.remove(args.svg_fn)
     os.rename("_"+args.svg_fn, args.svg_fn)
 
