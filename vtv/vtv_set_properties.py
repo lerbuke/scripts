@@ -25,17 +25,17 @@ def work(o, list, line):
     if len(o) != 3:
         raise NameError('Length of \'' + o + '\' must equals 3.')
 
-    sb = re.search(r'n=ble' + o + '_.[^< ]*', line.rstrip()) # i.e. 'n=blepha_65' or 
+    sb = re.search(r'n=ble' + o + '_.[^< ]*', line.rstrip()) # i.e. 'n=blepha_65' or
     if sb != None:
         id = sb.group()[9:]
         for item in list:
             if id == item[0]:
                 tooltip = item[3]
-                index = sb.span()[1]      
-                print (sb, id, line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
+                index = sb.span()[1]
+                #print (sb, id, line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 output_file.write(line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 break
-     
+
 try:
     # Open the cvs file and extract needed info into lists
     # Each item of the list if composed by a list of
@@ -65,8 +65,8 @@ try:
                 phares.append(value)
             if SWITCH in line:
                 switches.append(value)
-                
-    print(phares)                    
+
+    #print(cameras)
 
     with open (args.svg_fn, "r") as input_file:
         with open ("_"+args.svg_fn, "w", newline='\n') as output_file:
@@ -84,7 +84,7 @@ try:
                 work(AUTOMATE, automates, line)
 
                 # Camera
-                sb = re.search(r'MSVGTAG=ble'+AUTOMATE+'_\d+_dsc', line)
+                sb = re.search(r'MSVGTAG=ble'+CAMERA+'_\d+_dsc', line)
                 if sb != None:
                     id = re.search(r'\d+', sb.group()).group()
                     for cam in cameras:
@@ -100,10 +100,10 @@ try:
 
                 # Phare
                 work(PHARE, phares, line)
-               
+
                 # Switch
                 work(SWITCH, switches, line)
-                
+
     os.remove(args.svg_fn)
     os.rename("_"+args.svg_fn, args.svg_fn)
 
