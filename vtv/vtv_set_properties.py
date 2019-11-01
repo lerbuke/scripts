@@ -32,7 +32,6 @@ def work(o, list, line):
             if id == item[0]:
                 tooltip = item[3]
                 index = sb.span()[1]
-                #print (sb, id, line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 output_file.write(line[:index] + '\nTOOLTIP=' + tooltip + line[index:])
                 break
 
@@ -45,12 +44,16 @@ try:
     DISJONCTEUR = 'tbt'
     PHARE = 'pha'
     SWITCH = 'olm'
+    GNS = 'gns'
+    SCT = 'sct'
 
     automates = []
     cameras = []
     disjoncteurs = []
     phares = []
     switches = []
+    gnss = []
+    scts = []
 
     with open (args.file_name,"r") as cam_file:
         for line in cam_file:
@@ -65,14 +68,20 @@ try:
                 phares.append(value)
             if SWITCH in line:
                 switches.append(value)
+            if GNS in line:
+                gnss.append(value)
+            if SCT in line:
+                scts.append(value)
 
-    #print(cameras)
+    #print(gnss)
+    #print(scts)
 
     with open (args.svg_fn, "r") as input_file:
         with open ("_"+args.svg_fn, "w", newline='\n') as output_file:
             for line in input_file:
+
                 # Skip writing URL= or TOOLTIP= tags with their value
-                if ('URL=' not in line) and ('TOOLTIP=' not in line) and ('n=ble'+PHARE+'_' not in line) and ('n=ble'+SWITCH+'_' not in line) and ('n=ble'+AUTOMATE+'_' not in line) and ('n=ble'+DISJONCTEUR+'_' not in line):
+                if ('URL=' not in line) and ('TOOLTIP=' not in line) and ('n=ble'+PHARE+'_' not in line) and ('n=ble'+SWITCH+'_' not in line) and ('n=ble'+AUTOMATE+'_' not in line) and ('n=ble'+DISJONCTEUR+'_' not in line) and ('n=ble'+GNS+'_' not in line) and ('n=ble'+SCT+'_' not in line):
                     output_file.write(line)
                 else:
                     if 'URL=' in line:
@@ -84,7 +93,7 @@ try:
                 work(AUTOMATE, automates, line)
 
                 # Camera
-                sb = re.search(r'MSVGTAG=ble'+CAMERA+'_\d+_dsc', line)
+                sb = re.search(r'MSVGTAG=ble'+CAMERA+'_\d+_dac', line)
                 if sb != None:
                     id = re.search(r'\d+', sb.group()).group()
                     for cam in cameras:
@@ -103,6 +112,30 @@ try:
 
                 # Switch
                 work(SWITCH, switches, line)
+
+                # GNS
+                sb = re.search(r'MSVGTAG=ble'+GNS+'_\w+_stm', line)
+                if sb != None:
+                    id = re.search(r'_\w+_', sb.group()).group()
+                    id = id.strip('_')
+                    for i_gns in gnss:
+                        if id in i_gns[0]:
+                            tooltip = i_gns[3]
+                            output_file.write('TOOLTIP=' + tooltip + '\n')
+                            break
+
+                sb = re.search(r'MSVGTAG=ble'+GNS+'_\w+_dam', line)
+                if sb != None:
+                    id = re.search(r'_\w+_', sb.group()).group()
+                    id = id.strip('_')
+                    for i_gns in gnss:
+                        if id in i_gns[0]:
+                            tooltip = i_gns[3]
+                            output_file.write('TOOLTIP=' + tooltip + '\n')
+                            break
+
+                # SCT
+                work(SCT, scts, line)
 
     os.remove(args.svg_fn)
     os.rename("_"+args.svg_fn, args.svg_fn)
