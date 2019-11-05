@@ -11,6 +11,7 @@ sct: scénarios CT
 """
 import argparse, os, sys, traceback
 import sqlite3
+from btcsqlbuilder import *
 
 parser = argparse.ArgumentParser(description='Création des données dans la base server0.db du projet VTV.')
 parser.add_argument('-fn', '--file_name', default='vtv_instances.txt', help='Nom du fichier txt')
@@ -72,60 +73,181 @@ try:
 
     # Delete all MODBUS (0), URL (4) and SNMP (3) providers, provider configurations and replies
     for provider in (0,3,4):
-        cur.execute("SELECT providerNbSubId FROM provider WHERE providerType={}".format(provider))
+        sql = SqlBuilderSelect('provider', 'providerNbSubId')
+        sql.where('providerType={}'.format(provider))
+        cur.execute(sql.command())
+
         nb = cur.fetchone()[0]
         for i in range(0,nb):
             suffix = "_" + str(provider) + "_" + str(i)
-            cur.execute('DROP TABLE IF EXISTS provider' + suffix)
-            cur.execute('DROP TABLE IF EXISTS provider_config' + suffix)
-            cur.execute('DROP TABLE IF EXISTS provider_reply' + suffix)
+            cur.execute(SqlBuilderDrop('provider' + suffix).command())
+            cur.execute(SqlBuilderDrop('provider_config' + suffix).command())
+            cur.execute(SqlBuilderDrop('provider_reply' + suffix).command())
 
     # Recreate local table
-    cur.execute("DROP TABLE IF EXISTS local")
-    cur.execute("""CREATE TABLE local (
-        "id" INTEGER NOT NULL,
-        "tag" TEXT,
-        "desc" TEXT,
-        "desc2" TEXT,
-        "variant" INTEGER,
-        "alarm" INTEGER,
-        "prio" INTEGER,
-        "alarm_txt" INTEGER,
-        "renv0" INTEGER,
-        "renv1" INTEGER,
-        "renv2" INTEGER,
-        "renv3" INTEGER,
-        "renv4" INTEGER,
-        "store" INTEGER,
-        "texpro" integer,
-        PRIMARY KEY ("id")
-        );""")
+    cur.execute(SqlBuilderDrop('local').command())
+
+    sql = SqlBuilderCreate('local')
+    sql.addInt('id')
+    sql.addText('tag')
+    sql.addText('desc')
+    sql.addText('desc2')
+    sql.addInt('variant')
+    sql.addInt('alarm')
+    sql.addInt('prio')
+    sql.addInt('alarm_txt')
+    sql.addInt('renv0')
+    sql.addInt('renv1')
+    sql.addInt('renv2')
+    sql.addInt('renv3')
+    sql.addInt('renv4')
+    sql.addInt('store')
+    sql.addInt('texpro')
+    cur.execute(sql.command())
 
 
     # Update the number of automates and cameras
-    cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 0".format(len(automates)))
-    cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 3".format(len(cameras)+len(switchs)))
-    cur.execute("UPDATE provider SET providerNbSubId = {} WHERE providerType = 4".format(len(cameras)))
+    sql = SqlBuilderUpdate('provider')
+    sql.set('providerNbSubId', len(automates))
+    sql.where('providerType = 0')
+    cur.execute(sql.command())
+
+    sql = SqlBuilderUpdate('provider')
+    sql.set('providerNbSubId', len(cameras)+len(switchs))
+    sql.where('providerType = 3')
+    cur.execute(sql.command())
+
+    sql = SqlBuilderUpdate('provider')
+    sql.set('providerNbSubId', len(cameras))
+    sql.where('providerType = 4')
+    cur.execute(sql.command())
+
     conn.commit()
 
 
     sys.stdout.write('Creating {} supervision entries...'.format(len(supervisions)))
     for sup in supervisions:
         # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,texpro) VALUES('blegns_{}_stm','{} - Mode d''exploitation','{}',1,255,5,1)".format(sup[0],sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,texpro) VALUES('blegns_{}_tad','{} - Mode distant','{}',2,3,2,255,1,2)".format(sup[0],sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,texpro) VALUES('blegns_{}_tae','{} - Mode entretien','{}',2,3,2,255,3,2)".format(sup[0],sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,texpro) VALUES('blegns_{}_tal','{} - Mode local','{}',2,3,2,255,2,2)".format(sup[0],sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1) VALUES('blegns_{}_tex','{} - Communication avec Texpro HS','{}',2,4,1,255,4)".format(sup[0],sup[3],sup[5]))
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_stm'.format(sup[0]))
+        sql.add('desc', '{} - Mode d''exploitation'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 1)
+        sql.add('renv0', 255)
+        sql.add('renv1', 5)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
 
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_ada','{} - Présence alarme','{}',2,1)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_ate','{} - Présence alerte','{}',2,1)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_dai','{} - Défaut IHM','{}',2,2)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_dam','{} - Défaut matériel CI (AT)','{}',2,2)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_dsi','{} - Défaut IHM','{}',2,1)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_dsm','{} - Défaut matériel CI (AT)','{}',2,1)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_mae','{} - Synthèse alertes','{}',2,1)".format(sup[0], sup[3],sup[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blegns_{}_med','{} - Synthèse alarmes','{}',2,1)".format(sup[0], sup[3],sup[5]))
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_tad'.format(sup[0]))
+        sql.add('desc', '{} - Mode distant'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 2)
+        sql.add('renv0', 255)
+        sql.add('renv1', 1)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_tae'.format(sup[0]))
+        sql.add('desc', '{} - Mode entretien'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 2)
+        sql.add('renv0', 255)
+        sql.add('renv1', 3)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_tal'.format(sup[0]))
+        sql.add('desc', '{} - Mode local'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 2)
+        sql.add('renv0', 255)
+        sql.add('renv1', 2)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_tex'.format(sup[0]))
+        sql.add('desc', '{} - Communication avec Texpro HS'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)
+        sql.add('prio', 1)
+        sql.add('renv0', 255)
+        sql.add('renv1', 4)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_ada'.format(sup[0]))
+        sql.add('desc', '{} - Présence alarme'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_ate'.format(sup[0]))
+        sql.add('desc', '{} - Présence alerte'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_dai'.format(sup[0]))
+        sql.add('desc', '{} - Défaut IHM'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_dam'.format(sup[0]))
+        sql.add('desc', '{} - Défaut matériel CI (AT)'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_dsi'.format(sup[0]))
+        sql.add('desc', '{} - Défaut IHM'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_dsm'.format(sup[0]))
+        sql.add('desc', '{} - Défaut matériel CI (AT)'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_mae'.format(sup[0]))
+        sql.add('desc', '{} - Synthèse alertes'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blegns_{}_med'.format(sup[0]))
+        sql.add('desc', '{} - Synthèse alarmes'.format(sup[3]))
+        sql.add('desc2', sup[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
 
         sys.stdout.write('.')
     print('Done.')
@@ -133,16 +255,51 @@ try:
     sys.stdout.write('Creating {} scenarios entries...'.format(len(scenarios)))
     for sct in scenarios:
         # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2) VALUES('blesct_{}_cda','{} - Commande d''activation','{}',1,2,1,{})".format(sct[0],sct[3],sct[5],sct[1]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2,texpro) VALUES('blesct_{}_ope','{} - Etat opérationnel','{}',1,2,3,{},1)".format(sct[0],sct[3],sct[5],sct[1]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2,texpro) VALUES('blesct_{}_sta','{} - Etat d''activation','{}',1,2,2,{},1)".format(sct[0],sct[3],sct[5],sct[1]))
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blesct_{}_cda'.format(sct[0]))
+        sql.add('desc', '{} - Commande d''activation'.format(sct[3]))
+        sql.add('desc2', sct[5])
+        sql.add('variant', 1)
+        sql.add('renv0', 2)
+        sql.add('renv1', 1)
+        sql.add('renv2', sct[1])
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blesct_{}_ope'.format(sct[0]))
+        sql.add('desc', '{} - Etat opérationnel'.format(sct[3]))
+        sql.add('desc2', sct[5])
+        sql.add('variant', 1)
+        sql.add('renv0', 2)
+        sql.add('renv1', 3)
+        sql.add('renv2', sct[1])
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blesct_{}_sta'.format(sct[0]))
+        sql.add('desc', '{} - Etat d''activation'.format(sct[3]))
+        sql.add('desc2', sct[5])
+        sql.add('variant', 1)
+        sql.add('renv0', 2)
+        sql.add('renv1', 2)
+        sql.add('renv2', sct[1])
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
         sys.stdout.write('.')
     print('Done.')
 
     sys.stdout.write('Creating {} zonesfct entries...'.format(len(zonesfct)))
     for zof in zonesfct:
         # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('blezof_{}_std','{} - Etat des zones fonction.','{}',2,1)".format(zof[0],zof[3],zof[5]))
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blezof_{}_std'.format(zof[0]))
+        sql.add('desc', '{} - Etat des zones fonction.'.format(zof[3]))
+        sql.add('desc2', zof[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
         sys.stdout.write('.')
     print('Done.')
 
@@ -150,98 +307,286 @@ try:
     k = 0
     sys.stdout.write('Creating {} automate entries...'.format(len(automates)))
     for aut in automates:
-        cur.execute("""CREATE TABLE "provider_0_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "attribute" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "invert" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "immediate" INTEGER,
-            "store" INTEGER,
-            "scale" REAL,
-            "factor" REAL,
-            "field0" TEXT,
-            "field1" TEXT,
-            "texpro" integer,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_0_{}'.format(k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('tag')
+        sql.addText('desc')
+        sql.addText('desc2')
+        sql.addInt('variant')
+        sql.addInt('attribute')
+        sql.addInt('alarm')
+        sql.addInt('prio')
+        sql.addInt('alarm_txt')
+        sql.addInt('invert')
+        sql.addInt('renv0')
+        sql.addInt('renv1')
+        sql.addInt('renv2')
+        sql.addInt('renv3')
+        sql.addInt('renv4')
+        sql.addInt('immediate')
+        sql.addInt('store')
+        sql.addReal('scale')
+        sql.addReal('factor')
+        sql.addText('field0')
+        sql.addText('field1')
+        sql.addInt('texpro')
+        cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_config_0_{}" (
-            "id" INTEGER NOT NULL,
-            "name" TEXT,
-            "field0" TEXT,
-            "field1" TEXT,
-            "field2" TEXT,
-            "field3" TEXT,
-            "field4" TEXT,
-            "field5" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_config_0_{}'.format(k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('name')
+        sql.addText('field0')
+        sql.addText('field1')
+        sql.addText('field2')
+        sql.addText('field3')
+        sql.addText('field4')
+        sql.addText('field5')
+        cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_reply_0_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "store" INTEGER,
-            "texpro" integer,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_reply_0_{}'.format(k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('tag')
+        sql.addText('desc')
+        sql.addText('desc2')
+        sql.addInt('variant')
+        sql.addInt('alarm')
+        sql.addInt('prio')
+        sql.addInt('alarm_txt')
+        sql.addInt('renv0')
+        sql.addInt('renv1')
+        sql.addInt('renv2')
+        sql.addInt('renv3')
+        sql.addInt('renv4')
+        sql.addInt('store')
+        sql.addInt('texpro')
+        cur.execute(sql.command())
 
+        sql = SqlBuilderInsert('provider_0_{}'.format(k))
+        sql.add('tag', 'bletbt_{}_dsj'.format(aut[0]))
+        sql.add('desc', '{} - Défaut disjoncteur'.format(disjoncteurs[k][3]))
+        sql.add('desc2', disjoncteurs[k][5])
+        sql.add('variant', 2)
+        sql.add('attribute', 1)
+        sql.add('alarm', 4)
+        sql.add('invert', 1)
+        sql.add('field0', 1)
+        sql.add('field1', 0)
+        sql.add('renv0', 20)
+        sql.add('renv1', k+1)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,alarm,invert,field0,field1,renv0,renv1,texpro) VALUES('bletbt_{}_dsj','{} - Défaut disjoncteur','{}',2,1,4,1,1,0,20,{},1)".format(k,aut[0],disjoncteurs[k][3],disjoncteurs[k][5],k+1))
-        conn.commit()
-        conn.commit()
         if aut[0] == "29" or aut[0] == "scot":
             None
         elif aut[0] == "13":
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,field0,field1,texpro) VALUES('blepha_{}_sti','{} - Etat Phare IR','{}',2,1,0,0,1)".format(k,131,phares[k][3],phares[k][5]))
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,renv0,renv1,renv4,field0,field1) VALUES('blepha_{}_cdi','{} - Commande d''allumage du phare infrarouge','{}',2,0,200,{},{},0,0)".format(k,131,phares[k][3],phares[k][5],phares[k][4],aut[1]))
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,field0,field1,texpro) VALUES('blepha_{}_sti','{} - Etat Phare IR','{}',2,1,0,1,1)".format(k,132,phares[k+9][3],phares[k+9][5]))
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,renv0,renv1,renv4,field0,field1) VALUES('blepha_{}_cdi','{} - Commande d''allumage du phare infrarouge','{}',2,0,200,{},{},0,1)".format(k,132,phares[k+9][3],phares[k+9][5],phares[k+9][4],aut[1]))
-        else:
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,field0,field1,texpro) VALUES('blepha_{}_sti','{} - Etat Phare IR','{}',2,1,0,0,1)".format(k,aut[0],phares[k][3],phares[k][5]))
-            cur.execute("INSERT INTO provider_0_{} (tag,desc,desc2,variant,attribute,renv0,renv1,renv4,field0,field1) VALUES('blepha_{}_cdi','{} - Commande d''allumage du phare infrarouge','{}',2,0,200,{},{},0,0)".format(k,aut[0],phares[k][3],phares[k][5],phares[k][4],aut[1]))
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_sti'.format(131))
+            sql.add('desc', '{} - Etat Phare IR'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('field0', 0)
+            sql.add('field1', 0)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
 
-        cur.execute("INSERT INTO provider_config_0_{} (name,field0,field1,field2,field3) VALUES('bleaut_{}','{}',502,500,1)".format(k,aut[0],aut[2]))
-        cur.execute("INSERT INTO provider_reply_0_{} (tag,desc,desc2,variant,alarm,renv0,renv1,renv2,texpro) VALUES('bleaut_{}_dsc','{} - Défaut com. Automate','{}',2,4,1,1,{},1)".format(k,aut[0],aut[3],aut[5],k+1))
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_cdi'.format(131))
+            sql.add('desc', '{} - Commande d''allumage du phare infrarouge'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 0)
+            sql.add('renv0', 200)
+            sql.add('renv1', phares[k][4])
+            sql.add('renv4', aut[1])
+            sql.add('field0', 0)
+            sql.add('field1', 0)
+            cur.execute(sql.command())
+
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_sti'.format(132))
+            sql.add('desc', '{} - Etat Phare IR'.format(phares[k+9][3]))
+            sql.add('desc2', phares[k+9][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('field0', 0)
+            sql.add('field1', 1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_cdi'.format(132))
+            sql.add('desc', '{} - Commande d''allumage du phare infrarouge'.format(phares[k+9][3]))
+            sql.add('desc2', phares[k+9][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 0)
+            sql.add('renv0', 200)
+            sql.add('renv1', phares[k+9][4])
+            sql.add('renv4', aut[1])
+            sql.add('field0', 0)
+            sql.add('field1', 1)
+            cur.execute(sql.command())
+        else:
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_sti'.format(aut[0]))
+            sql.add('desc', '{} - Etat Phare IR'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('field0', 0)
+            sql.add('field1', 0)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+
+            sql = SqlBuilderInsert('provider_0_{}'.format(k))
+            sql.add('tag', 'blepha_{}_cdi'.format(aut[0]))
+            sql.add('desc', '{} - Commande d''allumage du phare infrarouge'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 2)
+            sql.add('attribute', 0)
+            sql.add('renv0', 200)
+            sql.add('renv1', phares[k][4])
+            sql.add('renv4', aut[1])
+            sql.add('field0', 0)
+            sql.add('field1', 0)
+            cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('provider_config_0_{}'.format(k))
+        sql.add('name', 'bleaut_{}'.format(aut[0]))
+        sql.add('field0', aut[2])
+        sql.add('field1', 502)
+        sql.add('field2', 500)
+        sql.add('field3', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('provider_reply_0_{}'.format(k))
+        sql.add('tag', 'bleaut_{}_dsc'.format(aut[0]))
+        sql.add('desc', '{} - Défaut com. Automate'.format(aut[3]))
+        sql.add('desc2', aut[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)
+        sql.add('renv0', 1)
+        sql.add('renv1', 1)
+        sql.add('renv2', k+1)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
 
         # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('bleaut_{}_dac','{} - Défaut com. automate','{}',2,3,2,1,2,{},2)".format(aut[0],aut[3],aut[5],k+1))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('bleaut_{}_ada','{} - Présence alarme','{}',2,1)".format(aut[0],aut[3],aut[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('bleaut_{}_dai','{} - Défaut insta','{}',2,2)".format(aut[0],aut[3],aut[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,texpro) VALUES('bleaut_{}_dsi','{} - Défaut insta','{}',2,1)".format(aut[0],aut[3],aut[5]))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('bletbt_{}_dac','{} - Défaut com. Disjoncteur','{}',2,3,1,1,2,{},2)".format(aut[0],disjoncteurs[k][3],disjoncteurs[k][5],k+1))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,renv0,renv1,renv2,texpro) VALUES('bletbt_{}_dsc','{} - Défaut com. Disjoncteur','{}',2,4,1,2,{},1)".format(aut[0],disjoncteurs[k][3],disjoncteurs[k][5],k+1))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,texpro) VALUES('bletbt_{}_daj','{} - Défaut disjoncteur','{}',2,3,1,21,{},2)".format(aut[0],disjoncteurs[k][3],disjoncteurs[k][5],k+1))
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleaut_{}_dac'.format(aut[0]))
+        sql.add('desc', '{} - Défaut com. automate'.format(aut[3]))
+        sql.add('desc2', aut[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 2)
+        sql.add('renv0', 1)
+        sql.add('renv1', 2)
+        sql.add('renv2', k+1)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleaut_{}_ada'.format(aut[0]))
+        sql.add('desc', '{} - Présence alarme'.format(aut[3]))
+        sql.add('desc2', aut[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleaut_{}_dai'.format(aut[0]))
+        sql.add('desc', '{} - Défaut insta'.format(aut[3]))
+        sql.add('desc2', aut[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleaut_{}_dsi'.format(aut[0]))
+        sql.add('desc', '{} - Défaut insta'.format(aut[3]))
+        sql.add('desc2', aut[5])
+        sql.add('variant', 2)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bletbt_{}_dac'.format(aut[0]))
+        sql.add('desc', '{} - Défaut com. Disjoncteur'.format(disjoncteurs[k][3]))
+        sql.add('desc2', disjoncteurs[k][5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 1)
+        sql.add('renv0', 1)
+        sql.add('renv1', 2)
+        sql.add('renv2', k+1)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bletbt_{}_dsc'.format(aut[0]))
+        sql.add('desc', '{} - Défaut com. Disjoncteur'.format(disjoncteurs[k][3]))
+        sql.add('desc2', disjoncteurs[k][5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)
+        sql.add('renv0', 1)
+        sql.add('renv1', 2)
+        sql.add('renv2', k+1)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bletbt_{}_daj'.format(aut[0]))
+        sql.add('desc', '{} - Défaut disjoncteur'.format(disjoncteurs[k][3]))
+        sql.add('desc2', disjoncteurs[k][5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 1)
+        sql.add('renv0', 21)
+        sql.add('renv1', k+1)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+
         if aut[0] == "29" or aut[0] == "scot":
             None
-        elif aut[0] == "13":
-            cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2,texpro) VALUES('blepha_{}_ope','{} - Etat opérationnel','{}',1,1,3,{},1)".format(131,phares[k][3],phares[k][5],k+1))
-            cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2,texpro) VALUES('blepha_{}_ope','{} - Etat opérationnel','{}',1,1,3,{},1)".format(132,phares[k+9][3],phares[k+9][5],k+1))
-        else:
-            cur.execute("INSERT INTO local (tag,desc,desc2,variant,renv0,renv1,renv2,texpro) VALUES('blepha_{}_ope','{} - Etat opérationnel','{}',1,1,3,{},1)".format(aut[0],phares[k][3],phares[k][5],k+1))
+        elif aut[0] == "13":            
+            sql = SqlBuilderInsert('local')
+            sql.add('tag', 'blepha_{}_ope'.format(131))
+            sql.add('desc', '{} - Etat opérationnel'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 1)
+            sql.add('renv0', 1)
+            sql.add('renv1', 3)
+            sql.add('renv2', k+1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+            
+            sql = SqlBuilderInsert('local')
+            sql.add('tag', 'blepha_{}_ope'.format(132))
+            sql.add('desc', '{} - Etat opérationnel'.format(phares[k+9][3]))
+            sql.add('desc2', phares[k+9][5])
+            sql.add('variant', 1)
+            sql.add('renv0', 1)
+            sql.add('renv1', 3)
+            sql.add('renv2', k+1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+            
+        else:            
+            sql = SqlBuilderInsert('local')
+            sql.add('tag', 'blepha_{}_ope'.format(aut[0]))
+            sql.add('desc', '{} - Etat opérationnel'.format(phares[k][3]))
+            sql.add('desc2', phares[k][5])
+            sql.add('variant', 1)
+            sql.add('renv0', 1)
+            sql.add('renv1', 3)
+            sql.add('renv2', k+1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
 
         k+=1
         sys.stdout.write('.')
@@ -250,131 +595,139 @@ try:
     k = 0
     sys.stdout.write('Creating {} camera entries...'.format(len(cameras)))
     for cam in cameras:
-        cur.execute("""CREATE TABLE "provider_3_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "attribute" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "invert" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "immediate" INTEGER,
-            "store" INTEGER,
-            "scale" REAL,
-            "factor" REAL,
-            "texpro" integer,
-            "field0" TEXT,
-            "field1" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        for no in [3,4]:
+            sql = SqlBuilderCreate('provider_{}_{}'.format(no, k))
+            sql.addInt('id', True)
+            sql.primaryKey('id')
+            sql.addText('tag')
+            sql.addText('desc')
+            sql.addText('desc2')
+            sql.addInt('variant')
+            sql.addInt('attribute')
+            sql.addInt('alarm')
+            sql.addInt('prio')
+            sql.addInt('alarm_txt')
+            sql.addInt('invert')
+            sql.addInt('renv0')
+            sql.addInt('renv1')
+            sql.addInt('renv2')
+            sql.addInt('renv3')
+            sql.addInt('renv4')
+            sql.addInt('immediate')
+            sql.addInt('store')
+            sql.addReal('scale')
+            sql.addReal('factor')
+            sql.addInt('texpro')
+            sql.addInt('field0')
+            sql.addInt('field1')
+            cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_config_3_{}" (
-            "id" INTEGER NOT NULL,
-            "name" TEXT,
-            "field0" TEXT,
-            "field1" TEXT,
-            "field2" TEXT,
-            "field3" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
+            sql = SqlBuilderCreate('provider_config_{}_{}'.format(no, k))
+            sql.addInt('id', True)
+            sql.primaryKey('id')
+            sql.addText('name')
+            sql.addText('field0')
+            sql.addText('field1')
+            sql.addText('field2')
+            sql.addText('field3')
+            cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_reply_3_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "store" INTEGER,
-            "texpro" integer,
-            PRIMARY KEY ("id")
-            );""".format(k))
-
-        cur.execute("""CREATE TABLE "provider_4_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "attribute" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "invert" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "immediate" INTEGER,
-            "store" INTEGER,
-            "scale" REAL,
-            "factor" REAL,
-            "texpro" integer,
-            "field0" TEXT,
-            "field1" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
-
-        cur.execute("""CREATE TABLE "provider_config_4_{}" (
-            "id" INTEGER NOT NULL,
-            "name" TEXT,
-            "field0" TEXT,
-            "field1" TEXT,
-            "field2" TEXT,
-            "field3" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
-
-        cur.execute("""CREATE TABLE "provider_reply_4_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "store" INTEGER,
-            "texpro" integer,
-            PRIMARY KEY ("id")
-            );""".format(k))
+            sql = SqlBuilderCreate('provider_reply_{}_{}'.format(no, k))
+            sql.addInt('id', True)
+            sql.primaryKey('id')
+            sql.addText('tag')
+            sql.addText('desc')
+            sql.addText('desc2')
+            sql.addInt('variant')
+            sql.addInt('alarm')
+            sql.addInt('prio')
+            sql.addInt('alarm_txt')
+            sql.addInt('renv0')
+            sql.addInt('renv1')
+            sql.addInt('renv2')
+            sql.addInt('renv3')
+            sql.addInt('renv4')
+            sql.addInt('store')
+            sql.addInt('texpro')
+            cur.execute(sql.command())
 
         conn.commit()
 
-        cur.execute("INSERT INTO provider_3_{} (tag,desc,desc2,variant,attribute,alarm,field0,field1) VALUES('blecad_{}_st1','{} - Défaut port com. 1','{}',2,1,0,'1.3.6.1.2.1.2.2.1.8.1',1)".format(k,cam[0],cam[3],cam[5]))
-        cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('blecad_{}','{}',5000)".format(k, cam[0],cam[2]))
-        cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,desc2,variant,alarm,renv0,renv1,renv2,texpro) VALUES('blecad_{}_dsc','{} - Défaut com. caméra','{}',2,4,1,1,{},1)".format(k,cam[0],cam[3],cam[5],101+k))
-
-        cur.execute("INSERT INTO provider_config_4_{} (name,field0,field1,field2) VALUES('blecad_{}','admin','A1vtv204','3000')".format(k, cam[0]))
-
-        # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('blecad_{}_dac','{} - Défaut com. caméra','{}',2,3,0,1,2,{},2)".format(cam[0],cam[3],cam[5],101+k))
-
-        # Provider_4_x
-        cur.execute("INSERT INTO provider_4_{} (tag,desc,desc2,variant,attribute,renv0,renv1,renv4,field0) VALUES('blecad_{}_co','{} - Caméra en mode couleur','{}',2,2,201,{},{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color')".format(k,cam[0],cam[3],cam[5],cam[4], 3 if 1==int(cam[1]) else 5, cam[2]))
-        cur.execute("INSERT INTO provider_4_{} (tag,desc,desc2,variant,attribute,renv0,renv1,renv4,field0) VALUES('blecad_{}_bw','{} - Caméra en mode nb','{}',2,2,202,{},{},'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=BW')".format(k,cam[0],cam[3],cam[5],cam[4], 4 if 1==int(cam[1]) else 6, cam[2]))
-
+        sql = SqlBuilderInsert('provider_3_{}'.format(k))
+        sql.add('tag', 'blecad_{}_st1'.format(cam[0]))
+        sql.add('desc', '{} - Défaut port com. 1'.format(cam[3]))
+        sql.add('desc2', cam[5])
+        sql.add('variant', 2)
+        sql.add('attribute', 1)
+        sql.add('alarm', 0)
+        sql.add('field0', '1.3.6.1.2.1.2.2.1.8.1')
+        sql.add('field1', 1)
+        cur.execute(sql.command())
+                  
+        sql = SqlBuilderInsert('provider_config_3_{}'.format(k))
+        sql.add('name', 'blecad_{}'.format(cam[0]))
+        sql.add('field0', cam[2])
+        sql.add('field3', 5000)
+        cur.execute(sql.command())
+                
+        sql = SqlBuilderInsert('provider_reply_3_{}'.format(k))
+        sql.add('tag', 'blecad_{}_dsc'.format(cam[0]))
+        sql.add('desc', '{} - Défaut com. caméra'.format(cam[3]))
+        sql.add('desc2', cam[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)
+        sql.add('renv0', 1)      
+        sql.add('renv1', 1)
+        sql.add('renv2', 101+k)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+        
+        sql = SqlBuilderInsert('provider_config_4_{}'.format(k))
+        sql.add('name', 'blecad_{}'.format(cam[0]))
+        sql.add('field0', 'admin')
+        sql.add('field1', 'A1vtv204')
+        sql.add('field2', 3000)
+        cur.execute(sql.command())
+        
+        # Local        
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'blecad_{}_dac'.format(cam[0]))
+        sql.add('desc', '{} - Défaut com. caméra'.format(cam[3]))
+        sql.add('desc2', cam[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)
+        sql.add('prio', 0)
+        sql.add('renv0', 1)      
+        sql.add('renv1', 2)
+        sql.add('renv2', 101+k)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+        
+        # Provider_4_x       
+        sql = SqlBuilderInsert('provider_4_{}'.format(k))
+        sql.add('tag', 'blecad_{}_co'.format(cam[0]))
+        sql.add('desc', '{} - Caméra en mode couleur'.format(cam[3]))
+        sql.add('desc2', cam[5])
+        sql.add('variant', 2)
+        sql.add('attribute', 2)
+        sql.add('renv0', 201)      
+        sql.add('renv1', cam[4])
+        sql.add('renv4', 3 if 1==int(cam[1]) else 5)
+        sql.add('field0', 'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=Color'.format(cam[2]))
+        cur.execute(sql.command())
+        
+        sql = SqlBuilderInsert('provider_4_{}'.format(k))
+        sql.add('tag', 'blecad_{}_bw'.format(cam[0]))
+        sql.add('desc', '{} - Caméra en mode nb'.format(cam[3]))
+        sql.add('desc2', cam[5])
+        sql.add('variant', 2)
+        sql.add('attribute', 2)
+        sql.add('renv0', 202)      
+        sql.add('renv1', cam[4])
+        sql.add('renv4', 4 if 1==int(cam[1]) else 6)
+        sql.add('field0', 'http://{}/stw-cgi/image.cgi?msubmenu=camera&action=set&DayNightMode=BW'.format(cam[2]))
+        cur.execute(sql.command())
+        
         k+=1
         sys.stdout.write('.')
     print('Done.')
@@ -382,78 +735,191 @@ try:
     swi_num = 0
     sys.stdout.write('Creating {} switch entries...'.format(len(switchs)))
     for swi in switchs:
-        cur.execute("""CREATE TABLE "provider_3_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "attribute" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "invert" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "immediate" INTEGER,
-            "store" INTEGER,
-            "scale" REAL,
-            "factor" REAL,
-            "texpro" integer,
-            "field0" TEXT,
-            "field1" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_3_{}'.format(k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('tag')
+        sql.addText('desc')
+        sql.addText('desc2')
+        sql.addInt('variant')
+        sql.addInt('attribute')
+        sql.addInt('alarm')
+        sql.addInt('prio')
+        sql.addInt('alarm_txt')
+        sql.addInt('invert')
+        sql.addInt('renv0')
+        sql.addInt('renv1')
+        sql.addInt('renv2')
+        sql.addInt('renv3')
+        sql.addInt('renv4')
+        sql.addInt('immediate')
+        sql.addInt('store')
+        sql.addReal('scale')
+        sql.addReal('factor')
+        sql.addInt('texpro')
+        sql.addText('field0')
+        sql.addText('field1')
+        cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_config_3_{}" (
-            "id" INTEGER NOT NULL,
-            "name" TEXT,
-            "field0" TEXT,
-            "field1" TEXT,
-            "field2" TEXT,
-            "field3" TEXT,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_config_3_{}'.format(k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('name')
+        sql.addText('field0')
+        sql.addText('field1')
+        sql.addText('field2')
+        sql.addText('field3')
+        cur.execute(sql.command())
 
-        cur.execute("""CREATE TABLE "provider_reply_3_{}" (
-            "id" INTEGER NOT NULL,
-            "tag" TEXT,
-            "desc" TEXT,
-            "desc2" TEXT,
-            "variant" INTEGER,
-            "alarm" INTEGER,
-            "prio" INTEGER,
-            "alarm_txt" INTEGER,
-            "renv0" INTEGER,
-            "renv1" INTEGER,
-            "renv2" INTEGER,
-            "renv3" INTEGER,
-            "renv4" INTEGER,
-            "store" INTEGER,
-            "texpro" integer,
-            PRIMARY KEY ("id")
-            );""".format(k))
+        sql = SqlBuilderCreate('provider_reply_3_{}'.format( k))
+        sql.addInt('id', True)
+        sql.primaryKey('id')
+        sql.addText('tag')
+        sql.addText('desc')
+        sql.addText('desc2')
+        sql.addInt('variant')
+        sql.addInt('alarm')
+        sql.addInt('prio')
+        sql.addInt('alarm_txt')
+        sql.addInt('renv0')
+        sql.addInt('renv1')
+        sql.addInt('renv2')
+        sql.addInt('renv3')
+        sql.addInt('renv4')
+        sql.addInt('store')
+        sql.addInt('texpro')
+        cur.execute(sql.command())
 
         conn.commit()
 
-        if swi[0] == "scot1" or swi[0] == "scot2" :
-            cur.execute("INSERT INTO provider_3_{} (tag,desc,desc2,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('bleolm_{}_ds1','{} - Défaut port com. 1','{}',2,1,4,10,{},1,'1.3.6.1.2.1.2.2.1.8.10303',1,1)".format(k,swi[0],swi[3],swi[5],swi_num+1))
-            cur.execute("INSERT INTO provider_3_{} (tag,desc,desc2,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('bleolm_{}_ds2','{} - Défaut port com. 2','{}',2,1,4,10,{},2,'1.3.6.1.2.1.2.2.1.8.10304',1,1)".format(k,swi[0],swi[3],swi[5],swi_num+1))
-        else:
-            cur.execute("INSERT INTO provider_3_{} (tag,desc,desc2,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('bleolm_{}_ds1','{} - Défaut port com. 1','{}',2,1,4,10,{},1,'1.3.6.1.2.1.2.2.1.8.1',1,1)".format(k,swi[0],swi[3],swi[5],swi_num+1))
-            cur.execute("INSERT INTO provider_3_{} (tag,desc,desc2,variant,attribute,alarm,renv0,renv1,renv2,field0,field1,texpro) VALUES('bleolm_{}_ds2','{} - Défaut port com. 2','{}',2,1,4,10,{},2,'1.3.6.1.2.1.2.2.1.8.2',1,1)".format(k,swi[0],swi[3],swi[5],swi_num+1))
-
-        cur.execute("INSERT INTO provider_config_3_{} (name,field0,field3) VALUES('bleolm_{}','{}',5000)".format(k,swi[0],swi[2]))
-        cur.execute("INSERT INTO provider_reply_3_{} (tag,desc,desc2,variant,alarm,renv0,renv1,renv2,texpro) VALUES('bleolm_{}_dsl','{} - Défaut com. switch','{}',2,4,1,1,{},1)".format(k,swi[0],swi[3],swi[5],101+k))
-
-        # Local
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('bleolm_{}_dal','{} - Défaut com. switch','{}',2,3,2,1,2,{},2)".format(swi[0],swi[3],swi[5],101+k))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('bleolm_{}_da1','{} - Défaut port com. 1','{}',2,3,1,12,{},1,2)".format(swi[0],swi[3],swi[5],swi_num+1))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,prio,renv0,renv1,renv2,texpro) VALUES('bleolm_{}_da2','{} - Défaut port com. 2','{}',2,3,1,12,{},2,2)".format(swi[0],swi[3],swi[5],swi_num+1))
-        cur.execute("INSERT INTO local (tag,desc,desc2,variant,alarm,renv0,renv1) VALUES('bleolm_{}_def','{} - Défaut technique switch','{}',2,4,11,{})".format(swi[0],swi[3],swi[5],swi_num+1))
+        if swi[0] == "scot1" or swi[0] == "scot2" :            
+            sql = SqlBuilderInsert('provider_3_{}'.format(k))
+            sql.add('tag', 'bleolm_{}_ds1'.format(swi[0]))
+            sql.add('desc', '{} - Défaut port com. 1'.format(swi[3]))
+            sql.add('desc2', swi[5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('alarm', 4)      
+            sql.add('renv0', 10)      
+            sql.add('renv1', swi_num+1)
+            sql.add('renv2', 1)
+            sql.add('field0', '1.3.6.1.2.1.2.2.1.8.10303')
+            sql.add('field1', 1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+                       
+            sql = SqlBuilderInsert('provider_3_{}'.format(k))
+            sql.add('tag', 'bleolm_{}_ds2'.format(swi[0]))
+            sql.add('desc', '{} - Défaut port com. 2'.format(swi[3]))
+            sql.add('desc2', swi[5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('alarm', 4)      
+            sql.add('renv0', 10)      
+            sql.add('renv1', swi_num+1)
+            sql.add('renv2', 2)
+            sql.add('field0', '1.3.6.1.2.1.2.2.1.8.10304')
+            sql.add('field1', 1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+        else:     
+            sql = SqlBuilderInsert('provider_3_{}'.format(k))
+            sql.add('tag', 'bleolm_{}_ds1'.format(swi[0]))
+            sql.add('desc', '{} - Défaut port com. 1'.format(swi[3]))
+            sql.add('desc2', swi[5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('alarm', 4)      
+            sql.add('renv0', 10)      
+            sql.add('renv1', swi_num+1)
+            sql.add('renv2', 1)
+            sql.add('field0', '1.3.6.1.2.1.2.2.1.8.1')
+            sql.add('field1', 1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+                       
+            sql = SqlBuilderInsert('provider_3_{}'.format(k))
+            sql.add('tag', 'bleolm_{}_ds2'.format(swi[0]))
+            sql.add('desc', '{} - Défaut port com. 2'.format(swi[3]))
+            sql.add('desc2', swi[5])
+            sql.add('variant', 2)
+            sql.add('attribute', 1)
+            sql.add('alarm', 4)      
+            sql.add('renv0', 10)      
+            sql.add('renv1', swi_num+1)
+            sql.add('renv2', 2)
+            sql.add('field0', '1.3.6.1.2.1.2.2.1.8.2')
+            sql.add('field1', 1)
+            sql.add('texpro', 1)
+            cur.execute(sql.command())
+            
+        sql = SqlBuilderInsert('provider_config_3_{}'.format(k))
+        sql.add('name', 'bleolm_{}'.format(swi[0]))
+        sql.add('field0', swi[2])
+        sql.add('field3', 5000)
+        cur.execute(sql.command())
+                
+        sql = SqlBuilderInsert('provider_reply_3_{}'.format(k))
+        sql.add('tag', 'bleolm_{}_dsl'.format(swi[0]))
+        sql.add('desc', '{} - Défaut com. switch'.format(swi[3]))
+        sql.add('desc2', swi[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)      
+        sql.add('renv0', 1)      
+        sql.add('renv1', 1)
+        sql.add('renv2', 101+k)
+        sql.add('texpro', 1)
+        cur.execute(sql.command())
+            
+        # Local        
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleolm_{}_dal'.format(swi[0]))
+        sql.add('desc', '{} - Défaut com. switch'.format(swi[3]))
+        sql.add('desc2', swi[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)      
+        sql.add('prio', 2)
+        sql.add('renv0', 1)      
+        sql.add('renv1', 2)
+        sql.add('renv2', 101+k)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+        
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleolm_{}_da1'.format(swi[0]))
+        sql.add('desc', '{} - Défaut port com. 1'.format(swi[3]))
+        sql.add('desc2', swi[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)      
+        sql.add('prio', 1)
+        sql.add('renv0', 12)      
+        sql.add('renv1', swi_num+1)
+        sql.add('renv2', 1)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+                
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleolm_{}_da2'.format(swi[0]))
+        sql.add('desc', '{} - Défaut port com. 2'.format(swi[3]))
+        sql.add('desc2', swi[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 3)      
+        sql.add('prio', 1)
+        sql.add('renv0', 12)      
+        sql.add('renv1', swi_num+1)
+        sql.add('renv2', 2)
+        sql.add('texpro', 2)
+        cur.execute(sql.command())
+        
+        sql = SqlBuilderInsert('local')
+        sql.add('tag', 'bleolm_{}_def'.format(swi[0]))
+        sql.add('desc', '{} - Défaut technique switch'.format(swi[3]))
+        sql.add('desc2', swi[5])
+        sql.add('variant', 2)
+        sql.add('alarm', 4)              
+        sql.add('renv0', 11)      
+        sql.add('renv1', swi_num+1)
+        cur.execute(sql.command())
 
         k+=1
         swi_num+=1
