@@ -57,6 +57,9 @@ Usage example:
     sql.addText('t') # add 't' field as TEXT
     sql.addText(['t1', 't2']) # add these 2 fields as TEXT
     print(sql.command())
+
+NOTE: take care with string value including apostrophe char ('): the string value must be given between "", like
+      "Besoin d'air" or the apostrophe char must be escaped like 'Besoin d\'air'.
 """
 class SqlBuilderCreate(SqlBuilder):
 
@@ -110,7 +113,7 @@ class SqlBuilderCreate(SqlBuilder):
         if len(self.dict) > 0:
             self.cmd += ' ('
             for field in self.dict:
-                self.cmd += '"' + field + '" ' + self.dict[field] + ','
+                self.cmd += field + ' ' + self.dict[field] + ','
             self.cmd = self.cmd[:-1]
             self.cmd += ')'
         return super().command()
@@ -130,7 +133,7 @@ Class that build an INSERT command string for a table.
 Example:
     sql = SqlBuilderInsert('local')
     sql.add('tag', 'toto')
-    sql.add('desc', 'Mode d''exploitation')
+    sql.add('desc', 'Mode d\'exploitation')
     sql.add('desc2', 'De nuit')
     sql.add('variant', 1)
     sql.add('renv0', 255)
@@ -146,23 +149,27 @@ class SqlBuilderInsert(SqlBuilder):
 
     # Add the key and its value in the dict.
     def add(self, field, value):
-        self.dict[field] = str(value)
+        if isinstance(value, str) == True:
+            self.dict[field] = '"' + value + '"'
+        else:
+            self.dict[field] = '{}'.format(value)
 
     # Overrided method that finalize the build of the command string before calling the base method.
     def command(self):
         if len(self.dict) == 0:
             raise('Nothing to insert.')
 
+        # Add field list
         self.cmd += ' ('
         for field in self.dict:
-            self.cmd += '"' + field + '",'
+            self.cmd += field + ','
         self.cmd = self.cmd[:-1]
-        self.cmd += ') VALUES('
 
+        # Add value list
+        self.cmd += ') VALUES('
         for field in self.dict:
-            self.cmd += '"' + self.dict[field]  + '",'
-        self.cmd = self.cmd[:-1]
-        self.cmd += ')'
+            self.cmd += self.dict[field] + ','
+        self.cmd = self.cmd[:-1] + ')'
 
         return super().command()
 
@@ -183,7 +190,11 @@ class SqlBuilderUpdate(SqlBuilder):
     # Build the command string with the SET field and value.
     def set(self, field, value):
         if -1 == self.cmd.find('SET'):
-            self.cmd += ' SET "' + field + '" = "' + str(value) + '"'
+            self.cmd += ' SET ' + field + ' = '
+            if isinstance(value, str) == True:
+                self.cmd += '"' + value + '"'
+            else:
+                self.cmd += '{}'.format(value)
         else:
             raise('SET already exists in the command string.')
 
@@ -242,9 +253,9 @@ if __name__ == '__main__':
         print(sql.command())
 
         sql = SqlBuilderInsert('local')
-        sql.add('field', 'blegns_{}_stm')
-        sql.add('desc', '{} - Mode d''exploitation')
-        sql.add('desc2', '{}')
+        sql.add('field', 'blegns_{}_stm'.format(10))
+        sql.add('desc', '{} - Mode d\'exploitation'.format(121))
+        sql.add('desc2', '{}'.format(32))
         sql.add('variant', 1)
         sql.add('renv0', 255)
         sql.add('renv1', 5)
