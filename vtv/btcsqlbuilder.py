@@ -51,22 +51,28 @@ class SqlBuilderCreate(SqlBuilder):
     def __init__(self, table):
         SqlBuilder.__init__(self, table, Type.CREATE)
 
-    def primaryKey(self, tag):
+    def __add(self, tag, type, notNull=False, primaryKey=False):
+        self.dict[tag] = type
+        if notNull == True:
+            self.dict[tag] += ' NOT NULL'
+        if primaryKey == True:
+            self.__primaryKey(tag)
+            
+    def __primaryKey(self, tag):
         for key in self.dict:
             if -1 != self.dict[key].find('PRIMARY KEY'):
-                raise('Primary key already exists.')
-        
+                raise('Primary key already exists.')        
         self.dict[tag] += ' PRIMARY KEY'
 
-    def addText(self, tag):
-        self.dict[tag] = 'TEXT'
-
-    def addInt(self, tag, not_null=False):
-        self.dict[tag] = 'INTEGER NOT NULL' if not_null else 'INTEGER'
-        
-    def addReal(self, tag):
-        self.dict[tag] = 'REAL'
-
+    def addText(self, tag, notNull=False, primaryKey=False):
+        self.__add(tag, 'TEXT', notNull, primaryKey)
+            
+    def addInt(self, tag, notNull=False, primaryKey=False):
+        self.__add(tag, 'INTEGER', notNull, primaryKey)
+            
+    def addReal(self, tag, notNull=False, primaryKey=False):
+        self.__add(tag, 'REAL', notNull, primaryKey)
+            
     def command(self):
         if len(self.dict) > 0:
             self.cmd += ' ('
@@ -143,7 +149,7 @@ if __name__ == '__main__':
 
     try:
         sql = SqlBuilderCreate('local')
-        sql.addInt('id')
+        sql.addInt('id', True, True)
         sql.addText('tag')
         sql.addText('desc')
         sql.addText('desc2')
