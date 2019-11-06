@@ -308,8 +308,7 @@ try:
     sys.stdout.write('Creating {} automate entries...'.format(len(automates)))
     for aut in automates:
         sql = SqlBuilderCreate('provider_0_{}'.format(k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('tag')
         sql.addText('desc')
         sql.addText('desc2')
@@ -334,8 +333,7 @@ try:
         cur.execute(sql.command())
 
         sql = SqlBuilderCreate('provider_config_0_{}'.format(k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('name')
         sql.addText('field0')
         sql.addText('field1')
@@ -346,8 +344,7 @@ try:
         cur.execute(sql.command())
 
         sql = SqlBuilderCreate('provider_reply_0_{}'.format(k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('tag')
         sql.addText('desc')
         sql.addText('desc2')
@@ -597,8 +594,7 @@ try:
     for cam in cameras:
         for no in [3,4]:
             sql = SqlBuilderCreate('provider_{}_{}'.format(no, k))
-            sql.addInt('id', True)
-            sql.primaryKey('id')
+            sql.addInt('id', True, True)
             sql.addText('tag')
             sql.addText('desc')
             sql.addText('desc2')
@@ -623,8 +619,7 @@ try:
             cur.execute(sql.command())
 
             sql = SqlBuilderCreate('provider_config_{}_{}'.format(no, k))
-            sql.addInt('id', True)
-            sql.primaryKey('id')
+            sql.addInt('id', True, True)
             sql.addText('name')
             sql.addText('field0')
             sql.addText('field1')
@@ -633,8 +628,7 @@ try:
             cur.execute(sql.command())
 
             sql = SqlBuilderCreate('provider_reply_{}_{}'.format(no, k))
-            sql.addInt('id', True)
-            sql.primaryKey('id')
+            sql.addInt('id', True, True)
             sql.addText('tag')
             sql.addText('desc')
             sql.addText('desc2')
@@ -736,8 +730,7 @@ try:
     sys.stdout.write('Creating {} switch entries...'.format(len(switchs)))
     for swi in switchs:
         sql = SqlBuilderCreate('provider_3_{}'.format(k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('tag')
         sql.addText('desc')
         sql.addText('desc2')
@@ -762,8 +755,7 @@ try:
         cur.execute(sql.command())
 
         sql = SqlBuilderCreate('provider_config_3_{}'.format(k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('name')
         sql.addText('field0')
         sql.addText('field1')
@@ -772,8 +764,7 @@ try:
         cur.execute(sql.command())
 
         sql = SqlBuilderCreate('provider_reply_3_{}'.format( k))
-        sql.addInt('id', True)
-        sql.primaryKey('id')
+        sql.addInt('id', True, True)
         sql.addText('tag')
         sql.addText('desc')
         sql.addText('desc2')
