@@ -552,7 +552,8 @@ try:
             sql.addText(['tag', 'desc', 'desc2'])
             sql.addInt(['variant', 'attribute', 'alarm', 'prio', 'alarm_txt', 'invert', 'renv0', 'renv1', 'renv2', 'renv3', 'renv4', 'immediate', 'store'])
             sql.addReal(['scale', 'factor'])
-            sql.addInt(['texpro', 'field0', 'field1'])
+            sql.addInt('texpro')
+            sql.addText(['field0', 'field1'])
             cur.execute(sql.command())
 
             sql = SqlBuilderCreate('provider_config_{}_{}'.format(no, k))
