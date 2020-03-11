@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 cb_create_entries.py
-Read a text file to create corresponding entries in database.
+Read a text file to create corresponding entries in a server database.
 """
 import argparse, os, sys
 import sqlite3, re
@@ -25,7 +25,8 @@ try:
     fw.close()
 
     #for item in list:
-     #   print(item)
+    #    print(item)
+    #exit();
 
     # Open the server0.db database
     conn = sqlite3.connect(args.db_path + 'server0.db')
@@ -66,13 +67,15 @@ try:
         if len(item) >= 3:
             addr_numbers = re.findall(r'[0-9]+', item[1]) # build a list of number found item[1]
             if 'BOOL' == item[2]:
-                # ['TelerelaisEclairagePubliqueModeNuit', 'AT %MX4.0', BOOL']
+                # ['TelerelaisEclairagePubliqueModeNuit', 'AT %MX4.0', BOOL'] or ['TS00_AllumageGeneral', 'AT %MX10.0', 'BOOL', '0', '1']
+                alarm = 1 if (len(item) < 4) else item[3]
+                invert = 0 if (len(item) < 5) else item[4]
                 if int(addr_numbers[0]) % 2 == 0:
                     address = 12288 + int(int(addr_numbers[0]) / 2)
-                    cur.execute("INSERT INTO provider_0_0 (tag,variant,attribute,field0,field1,field2,alarm) VALUES('{}',2,0,2,'{}','{}',1)".format(item[0], address, int(addr_numbers[1])+1))
+                    cur.execute("INSERT INTO provider_0_0 (tag,variant,attribute,field0,field1,field2,alarm,invert) VALUES('{}',2,0,2,'{}','{}','{}','{}')".format(item[0], address, int(addr_numbers[1])+1, alarm, invert))
                 else:
                     address = 12288 + int((int(addr_numbers[0])-1) / 2)
-                    cur.execute("INSERT INTO provider_0_0 (tag,variant,attribute,field0,field1,field2,alarm) VALUES('{}',2,0,2,'{}','{}',1)".format(item[0], address, int(addr_numbers[1])+8+1))
+                    cur.execute("INSERT INTO provider_0_0 (tag,variant,attribute,field0,field1,field2,alarm,invert) VALUES('{}',2,0,2,'{}','{}','{}','{}')".format(item[0], address, int(addr_numbers[1])+8+1, alarm, invert))
 
             elif 'BYTE' == item[2]:
                 # ['TS04_Statuts', 'AT %MB400', 'BYTE', '(* Pointeur pour la comm ADS *)']
