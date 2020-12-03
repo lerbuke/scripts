@@ -1,0 +1,122 @@
+<Component Clip="False"
+             ContentHeight="13"
+             ContentWidth="34"
+             Height="13.0"
+             Left="10"
+             Name="ADUPLIQUER"
+             Top="10"
+             Width="34.0">
+    <Rectangle Fill="#C0C0C0"
+                 Height="13"
+                 Left="0"
+                 Opacity="1.0"
+                 RadiusX="0.0"
+                 RadiusY="0.0"
+                 Stroke="#000000"
+                 StrokeDashArray="0.0"
+                 StrokeWidth="1.0"
+                 Top="0"
+                 Width="34">
+        <Bind Attribute="Fill"
+                DynamicUpdates="Enable"
+                Name="STATUS_B1_1"
+                PreventDefault="True">
+            <ConvertValue AttributeValue="#E0E0E0"
+                            Name="GRIS"
+                            SignalEqualTo=""
+                            SignalLessThan=""/>
+            <ConvertValue AttributeValue="#FFFF00"
+                            Name="JAUNE"
+                            SignalEqualTo="2"/>
+            <ConvertValue AttributeValue="#FF0000"
+                            Name="ROUGE"
+                            SignalEqualTo="4"/>
+            <ConvertValue AttributeValue="#BEB078"
+                            Name="BRUN"
+                            SignalEqualTo="3"/>
+            <Expose ExposedAttribute="Name"
+                      Name="STATUS"/>
+        </Bind>
+    </Rectangle>
+    <Text Fill="None"
+            FontFamily="Arial"
+            FontSize="10"
+            FontStyle="Normal"
+            FontWeight="Normal"
+            HorizontalAlign="Center"
+            Left="17"
+            Opacity="1.0"
+            Stroke="#000000"
+            TextDecoration="None"
+            Top="1"
+            VerticalAlign="Top"><![CDATA[100 %]]><Bind Attribute="Fill"
+                Name="VALUE_B1_1"
+                PreventDefault="True">
+            <Script Name="s1"
+                      OnDocumentLoad="load"
+                      OnMouseMove=""
+                      OnSignalChange="signal"><![CDATA[function load(evt)
+{
+  text = evt.getTarget().getParentNode();
+  output = text.getAttribute("Label");
+  if(output != "")
+    output += " ";
+  output += "-- " + text.getAttribute("Unit");
+  text.setAttribute("Content", output);
+}
+
+function leftPad(number, targetLength) {
+    var output = number + '';
+    while (output.length < targetLength) {
+        output = '0' + output;
+    }
+    return output;
+}
+
+function signal(evt)
+{
+  text = evt.getTarget().getParentNode();
+  
+  output = "";
+  
+  //alert(evt.getValue());
+  
+  label = text.getAttribute("Label");
+  if(label != "")
+    output = label + " ";
+  
+  decimals = 0;
+ 
+  value = new Number(evt.getValue());
+  
+  switch(evt.getStatus())
+  {
+    case 0: // Bad quality
+      output += "--";
+      text.setAttribute("TextDecoration", "None");
+      break;
+    case 1: // Stored value, uncertain quality
+      output += leftPad(value.toFixed(decimals), 3);
+      text.setAttribute("TextDecoration", "StrikeThrough");
+      break;
+    default: // Good quality
+      output += leftPad(value.toFixed(decimals), 3);
+      text.setAttribute("TextDecoration", "None");
+      break;
+  }
+  
+  unit = "%";
+  if(unit != "")
+    output += " " + unit;
+   
+  text.setAttribute("Content", output);
+}]]></Script>
+            <Expose ExposedAttribute="Name"
+                      Name="VALUE"/>
+        </Bind>
+    </Text>
+    <Bind Name="COMMANDE_B1_1">
+        <Expose ExposedAttribute="Name"
+                  Name="COMMANDE"/>
+    </Bind>
+</Component>
