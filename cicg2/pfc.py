@@ -1,26 +1,21 @@
-from libpfc import create_pfc
-import argparse, os
+from libpfc import Pfc
+
+import os
 
   
 def main():
-    parser = argparse.ArgumentParser(description='Description a définir')
-    parser.add_argument('-fn', '--file_name', required=True, help='Nom du fichier')
-    args = parser.parse_args()
-    print(args)
-
-    try:
-        fw = open(args.file_name, "w")
-    except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        exit()
-    except: #handle other exceptions such as attribute errors
-        print("Unexpected error:", sys.exc_info()[0])
-        exit()
-        
-    pfc = create_pfc('nom', 1, fw)
-    
-    fw.close()
-    
+       
+    pfc = Pfc('BUREAU', 240096, 18)
+    pfc.create_analog_value_array(64, 0, 'VALEUR_BUS1_BALLAST', '', 'Valeur du bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_analog_value_array(64, 0, 'COMMANDE_BUS1_BALLAST', '', 'Commande pour le bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_multiple_value_array(64, 0, 'STATUT_BUS1_BALLAST', '', 'Statut du bus 1 ballast', ['ETEINT', 'ALLUME', 'SOURCE HS', 'BALLAST HS'])
+    pfc.create_analog_value_array(64, 0, 'VALEUR_BUS2_BALLAST', '', 'Valeur du bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_analog_value_array(64, 0, 'COMMANDE_BUS2_BALLAST', '', 'Commande pour le bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_multiple_value_array(64, 0, 'STATUT_BUS2_BALLAST', '', 'Statut du bus 1 ballast', ['ETEINT', 'ALLUME', 'SOURCE HS', 'BALLAST HS'])
+    pfc.create_analog_value_array(64, 0, 'VALEUR_BUS3_BALLAST', '', 'Valeur du bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_analog_value_array(64, 0, 'COMMANDE_BUS3_BALLAST', '', 'Commande pour le bus 1 ballast', 98, 0, 100, 1)
+    pfc.create_multiple_value_array(64, 0, 'STATUT_BUS3_BALLAST', '', 'Statut du bus 1 ballast', ['ETEINT', 'ALLUME', 'SOURCE HS', 'BALLAST HS'])
+    pfc.end()
     
 if __name__ == '__main__':
     main()    
