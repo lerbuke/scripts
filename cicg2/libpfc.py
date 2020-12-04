@@ -85,11 +85,11 @@ class Pfc:
         self.fd.write('<n t="32" v="{}" />\n'.format(nb))  # 4 = NOMBRE D'ETAT
         self.fd.write('</p>\n')
         self.fd.write('<p id="28" s="1">\n')
-        self.fd.write('<n t="112" v="{}" />\n'.format(desc))  # DESCIPTION
+        self.fd.write('<n t="112" v="{}" />\n'.format(desc))  # DESCRIPTION
         self.fd.write('</p>\n')
         self.fd.write('<p id="110" s="1">\n')
         for state in states:
-            self.fd.write('<n t="112" v="{}" />\n'.format(state)) # DESCITPION DES ETATS SELON LE NOMBRE D'ETAT
+            self.fd.write('<n t="112" v="{}" />\n'.format(state)) # DESCRIPTION DES ETATS SELON LE NOMBRE D'ETAT
             
         self.fd.write('</p>\n')
         self.fd.write('</obj>\n')
