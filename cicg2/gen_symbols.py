@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 """
-Automaticaly add 100% symbols in the given xml file.
+Automaticaly add a number of ballasts symbols for a list of buses for an automate identifed by name in the given xml file.
+Usage:
+    python gen_symbols.py -fn test.tgml -an BUREAU -bu "1,3" -ba 64
+    
 """
 import argparse, os
 
 parser = argparse.ArgumentParser(description='Génération de symboles 100%.')
 parser.add_argument('-fn', '--file_name', required=True, help='Nom du fichier')
 parser.add_argument('-an', '--name', required=True, help='Nom de l\'automate')
-parser.add_argument('-bu', '--buses', required=True, type=int, help='Nombre de bus à générer')
+parser.add_argument('-bu', '--buses', required=True, help='Liste des numéro de bus à générer')
 parser.add_argument('-ba', '--ballasts', required=True, type=int, help='Nombre de ballast à générer par bus')
 
 
@@ -21,7 +24,7 @@ def add_items(fw, name, buses, ballasts):
     top = 10
     left = 10
     
-    for bus in range(1, buses+1):
+    for bus in list(buses.split(",")):
         ballast = 0
         while ballast < ballasts:    
             fw.write('    <Component Clip="False"\n')
