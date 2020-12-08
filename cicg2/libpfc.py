@@ -52,7 +52,7 @@ class Pfc:
         self.fd.write('<n t="64" v="{}" />\n'.format(increment))  # 1=COV INCREMENT
         self.fd.write('</p>\n')
         self.fd.write('<p id="28" s="1">\n')
-        self.fd.write('<n t="112" v="{}" />\n'.format(desc)) # myDesc=DESRCIPTION
+        self.fd.write('<n t="112" v="{}" />\n'.format(desc)) # myDesc=DESCRIPTION
         self.fd.write('</p>\n')
         self.fd.write('<p id="65">\n')
         self.fd.write('<n t="64" v="{}" />\n'.format(max)) # 100=MAX VALUE
