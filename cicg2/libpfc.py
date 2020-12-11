@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-"""
-
-"""
+#! python3
 import os, sys
 from datetime import datetime, timezone
 
@@ -34,9 +31,7 @@ class Pfc:
         self.fd.write('<p id="338" />\n')
         self.fd.write('<p id="340" />\n')
         self.fd.write('</obj>')
-        
-                     
-    
+
     def create_analog_value(self, codesys_name, bacnet_name, desc, unit, min, max, increment):
         if bacnet_name == '' :
             bacnet_name = codesys_name
@@ -104,13 +99,13 @@ class Pfc:
             self.create_multiple_value(codesys_name+'[{}]'.format(current), bacnet_name+'{}'.format(current), desc+ ' {}'.format(current), states)
             current = current + 1
     
-    def create_zone(self, label, desc, modes, types):       
+    def create_zone(self, label, desc, modes, types):
         self.create_multiple_value(label + '_MODE', '', 'Mode de fonctionnement ' + desc, modes)
 
         for type in types:
             self.create_analog_value(label + '_VALEUR_' + type[0], '', desc + ' - Etat courant ' + type , 98, 0, 100, 1)
             self.create_analog_value(label + '_FORCE_' + type[0], '', desc + ' - Valeur de forcage pour ' + type, 98, 0, 100, 1)
-    
+        
     def end(self):
         self.fd.write('  </objLst>\n')
         self.fd.write('  <cliMapSet />\n')
@@ -119,4 +114,3 @@ class Pfc:
         self.fd.write('  <MultiControllerSettings />\n')
         self.fd.write('</wagoDevice>\n')
         self.fd.close()
-  
