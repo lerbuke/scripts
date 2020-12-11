@@ -108,8 +108,8 @@ class Pfc:
         self.create_multiple_value(label + '_MODE', '', 'Mode de fonctionnement ' + desc, modes)
 
         for type in types:
-            self.create_analog_value(label + '_' + type[0], '', desc + ' - Etat courant ' + type , 98, 0, 100, 1)
-            self.create_analog_value(label + '_' + type[0], '', desc + ' - Valeur de forcage pour ' + type, 98, 0, 100, 1)
+            self.create_analog_value(label + '_VALEUR_' + type[0], '', desc + ' - Etat courant ' + type , 98, 0, 100, 1)
+            self.create_analog_value(label + '_FORCE_' + type[0], '', desc + ' - Valeur de forcage pour ' + type, 98, 0, 100, 1)
     
     def end(self):
         self.fd.write('  </objLst>\n')
