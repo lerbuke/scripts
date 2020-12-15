@@ -1,6 +1,7 @@
 #! python3
 import os, sys
-from datetime import datetime, timezone
+from datetime import datetime
+import time
 
 class Pfc:
     def __init__(self, name, id, fw):
@@ -13,9 +14,11 @@ class Pfc:
         self.nc = 0 # notification class instance
         utc = datetime.utcnow();
 
-        #print(utc.strftime('%Y-%m-%dT%H:%M:%S%Z'))
         self.fd.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        self.fd.write('<wagoDevice deviceType="750-8212" firmwareIndex="{}" copyright="" formatVersion="0.4" creationTool="WagoCfgEngine" creationDateTime="2020-12-03T19:35:48+01:00" creationUtcDateTime="{}" userVersion="" userID="" userComment="" persistency="1">\n'.format(fw, utc.strftime('%Y-%m-%dT%H:%M:%S')))
+        self.fd.write('<wagoDevice deviceType="750-8212" firmwareIndex="{}" copyright="" formatVersion="0.4" creationTool="WagoCfgEngine" '.format(fw))
+        self.fd.write('creationDateTime="{}+{:02d}:00" '.format(utc.strftime('%Y-%m-%dT%H:%M:%S'), int(-time.timezone/3600)))
+        self.fd.write('creationUtcDateTime="{}" '.format(utc.strftime('%Y-%m-%dT%H:%M:%S')))
+        self.fd.write('userVersion="" userID="" userComment="" persistency="1">\n')
         self.fd.write('  <objLst>\n')
         self.fd.write('<obj id="02{0:06x}">\n'.format(id))# 02+ID EN EXA SUR 6 DIGITS (02 03A9E0)
         self.fd.write('<p id="77">\n')
