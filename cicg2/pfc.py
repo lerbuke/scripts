@@ -62,6 +62,11 @@ def main():
     bureau.create_binary_value_alarm('BUS2_DEFAUT_SOURCE', '', 'Defaut source lumineuse sur Bus DALI 2', 0, ['Defaut source lumineuse sur Bus DALI 2', '', 'Aucun defaut']);
     bureau.create_binary_value_alarm('BUS2_DEFAUT_BALLAST', '', 'Defaut ballast sur Bus DALI 2', 0, ['Defaut ballast sur Bus DALI 2', '', 'Aucun defaut']);
 
+    bureau.create_multiple_value('COCKTAIL_S1', '', 'Zone eclairage en mode cocktail au niveau S1', ['INACTIF', 'ACTIF'])
+    bureau.create_multiple_value('COCKTAIL_00', '', 'Zone eclairage en mode cocktail au niveau 00', ['INACTIF', 'ACTIF'])
+    bureau.create_multiple_value('COCKTAIL_01', '', 'Zone eclairage en mode cocktail 01', ['INACTIF', 'ACTIF'])
+    bureau.create_multiple_value('COCKTAIL_02', '', 'Zone eclairage en mode cocktail 02', ['INACTIF', 'ACTIF'])
+
     bureau.end()
 
 if __name__ == '__main__':
